@@ -54,9 +54,9 @@ Java 编译器.."><meta name="generator" content="Hexo 7.3.0"></head><body class
 <p>System.out.println 语句告诉计算机要输出一些东西。System指的是计算机。System.out指的是计算机系统的输出部分，即计算机的屏幕。println（全称为print line，输出行)指的是Java的println方法。</p>
 <p>在Java中，String是一个数据类型。<br>Java编程风格惯例类名以大写字母开头。</p>
 <h2 id="编译-运行"><a href="#编译-运行" class="headerlink" title="编译&amp;运行"></a>编译&amp;运行</h2><p>法一：可以先javac进行编译，生成.class的字节码文件，再用java运行该字节码文件；</p>
-<p><img src="/./Java-picture/image-20241025235048141.png" alt="image-20241025235048141"></p>
+<p><img src="/project/./Java-picture/image-20241025235048141.png" alt="image-20241025235048141"></p>
 <p>法二：（对于java 11开始的版本）可以直接java 加xxx.java 在没先生成.class的情况下运行；</p>
-<p><img src="/./Java-picture/image-20241025234412314.png" alt="image-20241025234412314"></p>
+<p><img src="/project/./Java-picture/image-20241025234412314.png" alt="image-20241025234412314"></p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
 <li>计算机系统是计算机运行所必需的所有部件以及这些部件之间的连接。更具体地说，计算机</li>
 </ul>
@@ -190,7 +190,7 @@ Java 编译器.."><meta name="generator" content="Hexo 7.3.0"></head><body class
 <p>二、<strong>引用变量</strong>：<br>例如字符串变量。<br>字符串变量保存一个指向字符串对象的内存地址。string对象保存数据–字符串的字符。<br>引用变量是用引用类型来声明的。<br>引用类型是一种提供存储数据集合的类型。<br>字符串是一个引用类型，它提供了一个字符集合的存储。所以在下面的例子中，用String引用类型声明name意味着 name指向字符集合T、h、a、n、h、空格、N、g、u、y、<br>String name &#x3D; “Thanh Nguyen”;<br>String只是众多引用类型中的一种。类、数组和接口都被认为是引用类型。</p>
 <p>“+”运算符可以把字符串or char类型的变量两两连接起来所有命名常量都用保留字final修饰符，表示其值是固定or“最终的”（若程序后面想改final变量的值会报错），在命名常量时最好all字母都大写，且用下划线来分隔，eg定义一个常量：final double SPEED_OF_LIGHT</p>
 <p><strong>算术运算符</strong>：<br>1.简单的算术运算符：+、-、<em>、&#x2F;、%<br>2.自增和自减运算符（++、–）<br>3.复合赋值运算符（+&#x3D;、-&#x3D;、</em>&#x3D;、1&#x3D;、%&#x3D;）。<br>注意：字符串的连接也可以用复合赋值运算符+&#x3D;来连接。<br>4.强制转换运算符：语法为（要转换成的类型)值;注意不会改变原来变量的值。</p>
-<h2 id="控制"><a href="#控制" class="headerlink" title="控制"></a>控制</h2><h3 id="结构一：if"><a href="#结构一：if" class="headerlink" title="结构一：if"></a>结构一：if</h3><h1 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h1><p>例子：<br>Car car1;   引用变量声明<br>car1 &#x3D; new Car();    对象实例化<br>car1.year &#x3D; 2019；  向carl1的year 实例变量赋值 2019<br>第一条语句是car1引用变量的一个变量声明，它在内存中为car1引用变量分配了空间，即只是引用变量本身，而不是一个对象。最终，car1引用变量将持有一个对象的地址，但是因为还没有为它创建对象故还无合法的地址…(续见下图）<br><img src="/./Java-picture/SAVE_20241116_095926.jpg" alt="SAVE_20241116_095926"></p>
+<h2 id="控制"><a href="#控制" class="headerlink" title="控制"></a>控制</h2><h3 id="结构一：if"><a href="#结构一：if" class="headerlink" title="结构一：if"></a>结构一：if</h3><h1 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h1><p>例子：<br>Car car1;   引用变量声明<br>car1 &#x3D; new Car();    对象实例化<br>car1.year &#x3D; 2019；  向carl1的year 实例变量赋值 2019<br>第一条语句是car1引用变量的一个变量声明，它在内存中为car1引用变量分配了空间，即只是引用变量本身，而不是一个对象。最终，car1引用变量将持有一个对象的地址，但是因为还没有为它创建对象故还无合法的地址…(续见下图）<br><img src="/project/./Java-picture/SAVE_20241116_095926.jpg" alt="SAVE_20241116_095926"></p>
 <p>（垃圾，对于没有初始化声明的变量，初始值被称为“垃圾值”，因为它的实际值是未知的。用问号来表示“垃圾值”。)</p>
 <p><strong>引用赋值</strong>：</p>
 <p>将一个引用变量赋值给另一个引用变量的结果是，两个引用变量都指向同一个对象。</p>
@@ -199,7 +199,7 @@ Java 编译器.."><meta name="generator" content="Hexo 7.3.0"></head><body class
 <li>因为引用变量存储了地址，实际上是把右边引用变量的地址赋给了左边的引用变量。所以在赋值之后，这两个引用变量保存相同的地址，这意味着它们引用的是同一个对象。</li>
 <li>例子：</li>
 </ul>
-<p><img src="/./Java-picture/SAVE_20241116_095933.jpg" alt="SAVE_20241116_095933"></p>
+<p><img src="/project/./Java-picture/SAVE_20241116_095933.jpg" alt="SAVE_20241116_095933"></p>
 <p>如果一个无法访问的对象持续存在并占用计算机内存的空间，这就被称为<strong>内存泄漏</strong>。</p>
 <ul>
 <li>内存泄漏可能发生在执行过程中分配内存的计算机程序中。</li>
