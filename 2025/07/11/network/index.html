@@ -1,0 +1,297 @@
+<!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>network</title><meta name="description" content="Just enjoy yourself"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/53823473a87a2296bd53e810bc258f1.jpg"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/post.css"><link rel="stylesheet" href="/style/themes/highlight-theme-light.css"><link rel="stylesheet" href="/style/common/jquery.fancybox.min.css"><script src="/js/highlight.pack.js"></script><meta name="description" content="引入:(建议全学完了再看一遍该节)
+每层提供的功能的目的是通过层间的接口向上层提供更好的服务；而本层的功能的实现要通过层间的接口调用下层的服务才能实现；
+互联网的RIP网络是按照分组交换的方式来工作的，而分组的交换会涉及到丢包，分组的传输会有延迟；（RIP，即路由信息协议，是一种基于距离矢量的内部网关协议）
+
+应用层是借助传输层所提供的服务交换应用报文，实现各种各样的网络应用。
+
+物理层是在媒体之上传输和接收电磁波信号、光信号；
+
+链路层在相邻两个节点之间传输以帧为单位的数据，解决点到点的问题；
+
+网络层在链路层所提供的相邻两点之间的传输的基础上实现主机原主机到目标主机之间的一个传输，拓展了数据链路层的功能，做到端与端的传输，但有不足。
+
+传输层在网络层的基础上又加强、细分了网络层的服务，解决了进程到进程通.."><meta name="generator" content="Hexo 7.3.0"></head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">ting-06a's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">network</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Click back to the top</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E5%85%A5"><span class="toc-text">引入:</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%92%8C%E5%9B%A0%E7%89%B9%E7%BD%91"><span class="toc-text">计算机网络和因特网</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-what%E2%80%99s-Internet"><span class="toc-text">1. what’s Internet</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%BD%91%E7%BB%9C%E8%BE%B9%E7%BC%98"><span class="toc-text">2.网络边缘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BD%91%E7%BB%9C%E6%A0%B8%E5%BF%83"><span class="toc-text">3.网络核心</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E7%BD%91%E7%BB%9C%E6%A0%B8%E5%BF%83%E4%BA%A4%E6%8D%A2%E6%95%B0%E6%8D%AE%E4%BD%9C%E7%94%A8%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%96%B9%E5%BC%8F"><span class="toc-text">实现网络核心交换数据作用的两个方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E7%BB%84%E5%BB%B6%E6%97%B6%E3%80%81%E4%B8%A2%E5%A4%B1%E5%92%8C%E5%90%9E%E5%90%90%E9%87%8F"><span class="toc-text">分组延时、丢失和吞吐量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%8E%A5%E5%85%A5%E7%BD%91%E5%92%8C%E7%89%A9%E7%90%86%E5%AA%92%E4%BD%93"><span class="toc-text">4.接入网和物理媒体</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%BA%92%E8%81%94%E7%BD%91%E7%BB%93%E6%9E%84%E5%92%8CISP"><span class="toc-text">5.互联网结构和ISP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%8D%8F%E8%AE%AE%E5%B1%82%E6%AC%A1%E5%92%8C%E6%9C%8D%E5%8A%A1%E6%A8%A1%E5%9E%8B"><span class="toc-text">6.协议层次和服务模型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82"><span class="toc-text">应用层</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/tags/network"><i class="tag post-item-tag">network</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">network</h1><time class="has-text-grey" datetime="2025-07-11T08:35:28.000Z">2025-07-11</time><article class="mt-2 post-content"><h1 id="引入"><a href="#引入" class="headerlink" title="引入:"></a>引入:</h1><p><strong>(建议全学完了再看一遍该节)</strong></p>
+<p>每层提供的功能的目的是通过层间的接口向上层提供更好的服务；<br>而本层的功能的实现要通过层间的接口调用下层的服务才能实现；</p>
+<p>互联网的RIP网络是按照分组交换的方式来工作的，而分组的交换会涉及到丢包，分组的传输会有延迟；<br>（RIP，即路由信息协议，是一种基于距离矢量的内部网关协议）</p>
+<ol>
+<li><p>应用层是借助传输层所提供的服务交换应用报文，实现各种各样的网络应用。</p>
+</li>
+<li><p>物理层是在媒体之上传输和接收电磁波信号、光信号；</p>
+</li>
+<li><p>链路层在相邻两个节点之间传输以帧为单位的数据，解决点到点的问题；</p>
+</li>
+<li><p>网络层在链路层所提供的相邻两点之间的传输的基础上实现主机原主机到目标主机之间的一个传输，拓展了数据链路层的功能，做到端与端的传输，但有不足。</p>
+</li>
+<li><p>传输层在网络层的基础上又加强、细分了网络层的服务，解决了进程到进程通信的最后一个问题。之后应用进程就可以按照应用层协议交换报文，实现各种各样的网络应用。</p>
+<p>互联网只是网络的一种，只是它比较普及。</p>
+</li>
+</ol>
+<h1 id="计算机网络和因特网"><a href="#计算机网络和因特网" class="headerlink" title="计算机网络和因特网"></a>计算机网络和因特网</h1><h2 id="1-what’s-Internet"><a href="#1-what’s-Internet" class="headerlink" title="1. what’s Internet"></a>1. what’s Internet</h2><p><strong>网络</strong>：由节点和边构成的与大小、形状无关的拓扑；</p>
+<p><strong>计算机网络</strong>：联网的计算机所构成的系统，其包括的节点有：</p>
+<p>**1.**主机节点：主机（e g：手机，联网的冰箱）及其上运行的应用程序，主机节点是数据的源也是数据的目标；</p>
+<p>**2.**数据交换节点：如路由器、交换机等网络交换设备，它们既不是源也不是目标，而是数据的中转节点，进行转发数据，（路由器工作在网络层，交换机工作在链路层）；通过这些中转节点的相互配合，完成从源节点传输到目标节点。</p>
+<ul>
+<li>节点有两种画风，一个正方形□的为主机节点，一个圆形○的为数据交换节点。</li>
+<li>对于边，只要与方的有关，就是<u>接入网链路</u>（access）；若为两个圆的接在一起就是<u>主干链路</u>（backbone）。</li>
+<li>把节点连在一起的叫链路，最后构成一个网。</li>
+</ul>
+<p>所以说，联网的计算机系统有节点和边构成的这样的一个系统称为计算机网络。</p>
+<p><strong>互联网&#x2F;Internet&#x2F;网际：</strong></p>
+<ul>
+<li><p>以TCP协议和IP协议为主的一簇协议支撑起工作的网络；</p>
+</li>
+<li><p>从构成的角度来看，是一堆的网络通过网络互联设备连在一起的巨型网络；</p>
+</li>
+<li><p>从服务的角度来看，是分布式的应用以及为分布式应用提供通信服务的基础设施</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">（基础设施包括了 主机应用层以下的所有运行当中的协议实体，对方机应用进程以下的所有运行当中的应用实体，和all的网络部分）</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>是基础设施和分布式应用；</p>
+<ul>
+<li>分布式的应用是网络存在的理由。</li>
+<li>基础设施向应用进程提供服务的形式是api方式，但分为面向连接的服务（tcp提供）和无连接的服务（utp提供）两种形式。</li>
+</ul>
+</li>
+</ul>
+<p>注：内部网，internet；<br>       端系统，host，end system<br>       交换机switch，路由器router<br>       链路，link，重要的指标是带宽以bp s，即beat per second，每秒传输的位。</p>
+<p><strong>协议</strong>：相当于标准，按照层次不同分为不同协议等，是对等层的实体在通信过程中遵循的规则的集合；</p>
+<ul>
+<li>比如像这边通信的tcp和另一边通信的tcp关系就是对等层的实体；</li>
+<li>遵守同样协议的网络实体才能相互通行。</li>
+<li>PDU，协议数据单元，在不同层上有不同特质，在应用层上叫message，在传输层上叫segment。</li>
+<li>互联网中所有通信行为都受到协议的规范。</li>
+</ul>
+<h2 id="2-网络边缘"><a href="#2-网络边缘" class="headerlink" title="2.网络边缘"></a>2.网络边缘</h2><p>从结构的角度来，互联网包括3个<strong>子系统：</strong><br><strong>1.边缘系统</strong>：主机，应用程序（客户端和服务器）<br><strong>2.网络核心</strong>：互连着的路由器和交换机，网络的网络；</p>
+<ul>
+<li>起全球范围内几亿节点之间数据交换的作用（原主机发出去，目标主机能收到）；</li>
+<li>实际上是由数百万个数据交换节点构成的分布式交换系统，由它们的互相配合发挥作用；</li>
+<li>把所有的边缘节点连在一起，从而让任意两个端系统之间能够互相通信；</li>
+</ul>
+<p><strong>3.接入系统</strong>：形式为有线或者无线通信链路<br>     接入网：把网络边缘接入到网络核心</p>
+<p><strong>应用进程之间通讯的模式：</strong></p>
+<p><strong>1.c&#x2F;s模式（客户端服务器模式）：</strong></p>
+<ul>
+<li><p>是主从模式，“主”指all资源都在服务器那，“从”指客户端的请求的资源都来自服务器。</p>
+</li>
+<li><p>服务器先启动，客户端后启动；</p>
+</li>
+<li><p>客户端主动发出请求，请求资源；</p>
+<p>服务器被动接受请求，响应后将处理后的结果、资源返回给客户端。</p>
+</li>
+<li><p>可扩展性较差，随着请求载荷增加，能力下降（当到达一定程度时，有断崖式下降）</p>
+</li>
+</ul>
+<p><strong>2.P2P：</strong></p>
+<ul>
+<li><p>P指peer，对等体，也是分布式应用进程；</p>
+</li>
+<li><p>每个节点即是客户端，又是服务器；</p>
+</li>
+<li><p>通信分布式的；</p>
+</li>
+<li><p>当请求节点增多，但同时提供资源节点也增多；</p>
+</li>
+<li><p>在文件分发系统中常有，eg：迅雷。</p>
+<p>下载资源会比在web网站快，因为如：可以向这个客户端下载文件的这个片段，又从另一个客户端下载文件的另个片段，还可以….,多条路径可同时下载，带宽聚集。</p>
+</li>
+</ul>
+<p><strong>基础设施为网络应用提供的通信服务分两种方式：</strong>（后面章节会详细介绍）<br>1.面向连接通讯方式：如tcp协议实体向应用进程提供的服务；两个应用进程通信前打个招呼，两方和底层协议站要做好准备，但之间的节点不知道–&gt;通信的状态在端系统中维护；<br>2.无连接：UDP提供的服务，不可靠，没流量控制，没拥塞控制，适合网络多媒体应用。</p>
+<p><strong>tcp向上层提供服务的特性：</strong><br>1.可靠：不重复、不失序、不出错、不丢失。<br>               发送方发送啥，接收方就接受到啥；<br>               也包括保续<br>2.流量控制<br>3.拥塞控制</p>
+<h2 id="3-网络核心"><a href="#3-网络核心" class="headerlink" title="3.网络核心"></a>3.网络核心</h2><h3 id="实现网络核心交换数据作用的两个方式"><a href="#实现网络核心交换数据作用的两个方式" class="headerlink" title="实现网络核心交换数据作用的两个方式"></a>实现网络核心交换数据作用的两个方式</h3><p><strong>1.电路交换or线路交换（circuit  switching）</strong>：</p>
+<ul>
+<li>通常被传统的电话网络使用，如固话；</li>
+<li>在两个电话通讯之前，要建立一个物理线路（一个独享的线路），之后通过该线路两者才能通信。</li>
+<li>此方式为独享，性能有保障。（独享能保障性能）</li>
+<li>资源浪费；</li>
+<li>不适合计算机之间的通讯,因为连接建立时间长，且计算机之间的通信有突发性，如果使用线路交换则浪费的片较多（即使这个呼叫没有数据传输，其所占据的片也不能够被别的呼叫使用），可靠性不高（“？”）。</li>
+<li>将宽带分成片的方式（在线路交换中多路复用的方式）：<ul>
+<li>1.频分(FDM，frequency-division multiplexing)；</li>
+<li>2.时分(TDM,time-division multiplexing)：比如第一个时间片给第一个用户通信，第二个时间片给第二的用户通信，依次类推。</li>
+<li>3.波分(WDM,wave-division multiplexing)：采用光通信的方式…；</li>
+</ul>
+</li>
+</ul>
+<p><strong>2.分组交换（packet switching）</strong>：</p>
+<ul>
+<li><p>以分组为单位，存储转发的方式来实现；</p>
+</li>
+<li><p>网络带宽资源不再分，传输时使用全部带宽；</p>
+</li>
+<li><p>主机之间传输的数据被分为一个个分组&#x2F;packet；</p>
+</li>
+<li><p>以分组&#x2F;packet为单位在每个交换节点以<u>存储</u>(要把整个分组存下来）转发的方式来进行；</p>
+</li>
+<li><p>延迟比线路交换长；</p>
+</li>
+<li><p>网络共享性（当主机的通信有很强的突发性时，分组交换有更好的共享性，自己不用时不占用网络资源。）</p>
+<p>（注：发送和接受只是一个事物的两个方面，传播延时只要算一遍，从任一方面的角度来算即可）</p>
+</li>
+<li><p>可变长的排队延迟：若到达速率＞链路输出速率，则分组将会排队，等待传输；</p>
+</li>
+<li><p>可能出现的丢失：若路由器的缓存用完了，分组会被抛弃。</p>
+</li>
+<li><p>对多个分组时，分组交换划分时间片的方式是不固定的–&gt;<u>统计</u>多路复用（方式）；</p>
+</li>
+<li><p>分组交换支持的主机多些，按需使用。</p>
+</li>
+</ul>
+<p><strong>网络核心的两个主要作用</strong>：转发和路由；</p>
+<ul>
+<li>转发是局部的，路由是全局的；</li>
+<li>通过路由和转发的相互配合完成数据交换的过程；</li>
+<li>通过查路由表决定一个分组往哪走，路由表是由路由器放在路由软件的路由模块算出来的；</li>
+</ul>
+<p><strong>分组交换按照网络层是否有连接分为两种方式：</strong></p>
+<p><strong>1.数据报（datagram）：</strong></p>
+<ul>
+<li>无连接的；</li>
+<li>每个分组携带了目标主机的完整地址，交换节点根据每个分组带的完整地址来存储转发；</li>
+<li>两个主机在通讯前不用握手，不用建立连接，有数据就传输；</li>
+<li>每个分组的传输是独立的（路径可能不一样，可能失序）；</li>
+<li>无状态路由器，即路由器不维护主机与主机间通信的状态。</li>
+</ul>
+<p><strong>2.虚电路（virtual circuit)：</strong></p>
+<ul>
+<li>有连接的；</li>
+<li>主机和目标主机通讯前要握手，为了在交换节点间保持通信的状态，（靠信令）建立起虚拟的线路，之后每个分组携带一个虚电路号，按虚电路号来标识，到每个交换节点存储转发。</li>
+<li>虚电路的连接不仅仅体现在原主机与目标主机上，还体现在中间节点所经过的所有交易节点之上；</li>
+<li>虚电路是在分组交换网络中建立的一条逻辑连接，和电路交换不同，它不需要独占物理线路，但数据传输前需要建立连接，传输结束后释放，是面向连接。<ul>
+<li>面向连接的服务通常是指在数据传输前先建立连接；</li>
+<li>回顾，tcp向应用进程提供服务时，是面向连接，该连接仅仅体现在端系统的tcp实体上，即仅仅体现在目标主机和原主机的tcp实体上，中间的路由器不维护它们之间的通信状态；</li>
+</ul>
+</li>
+</ul>
+<p><strong>小节</strong>：</p>
+<p>补充：上行流量是你发送出去的数据，而下行流量是你接收到的数据</p>
+<p>通信网络：</p>
+<ul>
+<li>1.电路交换网络：<ul>
+<li>按划分pieces&#x2F;带宽的方式分为：FDM,    TDM，WDM.</li>
+</ul>
+</li>
+<li>2.分组交换网络：<ul>
+<li>数据报网络，虚电路网络</li>
+</ul>
+</li>
+</ul>
+<h3 id="分组延时、丢失和吞吐量"><a href="#分组延时、丢失和吞吐量" class="headerlink" title="分组延时、丢失和吞吐量"></a>分组延时、丢失和吞吐量</h3><p><strong>分组丢失</strong>：</p>
+<ul>
+<li>若分组到达路由器的缓冲区时，没有可用的缓冲区则该分组被丢失。</li>
+<li>当分组（packet）到达路由器时，通常需要先在路由器的缓存中进行存储</li>
+<li>4种分组延迟：<ul>
+<li>排队延迟d(queue)：在输出链路上等待传输的时间；<br>依赖于路由器的拥塞程度；取决于流量强度；</li>
+<li>节点处理延迟d(proc)：检查bit级差错，检查分组首部，查路由表，决定将分组导向何处。</li>
+<li>传输延迟d(trans)：R链路带宽（bps），L分组长度（bits）；<br>将分组发送到链路上的时间为L&#x2F;R;<br>可以说是吐出第一个比特到打完该分组all比特的时间；</li>
+<li>传播延迟d(prop)：d物理链路的长度，s在媒体上的传播速度，传播延迟为d&#x2F;s；<br>每个bit要越过那个链路消耗的时间。当两个节点距离比较近时可以忽略。</li>
+</ul>
+</li>
+<li>在相邻两个节点中，一个节点到相邻一个节点之间可称为一个hop&#x2F;跳&#x2F;段，路径有很多hop构成。<br>像分组到达一个路由器后，由路由器决定哪个链路作为这个分组的下一跳。</li>
+<li>节点延迟等于上面四种延迟的总和；</li>
+</ul>
+<p><strong>流量强度</strong>I&#x3D;La&#x2F;R，R该链路的带宽（bps），L每个分组的长度（bits），a分组到达队列的平均速度；<br>流量强度应取值在0-1之间。<br>当I比较小的时候，排队延迟小；当I趋近于1，排队延迟趋近于无限大。</p>
+<p>对于<strong>丢失的分组，有三种可能：</strong><br>1.由上一个节点重传，若链路&#x2F;协议是可靠的<br>2.主机重传<br>3.若是使用utp来传输，则不重传。</p>
+<p><strong>吞吐量</strong>：</p>
+<ul>
+<li>单位时间内，原主机向目标主机发出去的有效比特的数量。(在源端和目标端之间的传输速率)</li>
+<li>分两种：<ul>
+<li>瞬间吞吐量：在一个时间点的速率；</li>
+<li>平均吞吐量：在一个长时间内的平均值。</li>
+</ul>
+</li>
+<li>瓶颈链路：端到端路径上，限制端到端吞吐的链路。</li>
+</ul>
+<h2 id="4-接入网和物理媒体"><a href="#4-接入网和物理媒体" class="headerlink" title="4.接入网和物理媒体"></a>4.接入网和物理媒体</h2><p>接入重要的指标：带宽（看 b ps）、是否共享</p>
+<p><strong>住宅接入：</strong></p>
+<p>一：modem调制解调器，在音频载波信号上加载要传输的上网数据；</p>
+<p>对于ISP（运营商）来说，利用之前已铺有的电话线，只需在原有的电话通信网络中让用户买个modem，俗称“猫”，即可上网，不用在另外铺线到每户了。（以前的这种方式打电话和上网不能同时进行，所以现在被淘汰了）<br>二： 后来，将4k HZ以下用于语言通讯，4k以上按找非对称方式，有段用于上行，有段用于下行，（用于下行的带宽更大些），该方式称为DSL，上行、下行数据采用调制与解调，用的带宽是4k HZ以上的额外带宽，这样在打电话的同时还可以上网（要装个DSL modem）。<br>三：有线公司提供的方式，运用原有的有线电视的线缆，通过有线电视公司进入互联网是用的共享带宽，使用cable splitter modem。<br>在家庭接入的方式中，使用不同的modem通过链路接入到 不同的运营商、有线公司的运营商等等。</p>
+<p>现在也有用局域网的；</p>
+<p><strong>企业接入网络：</strong></p>
+<ul>
+<li>通过交换机的级联or AP（无线接入点、无线路由器）进入到交换机的端口，再不断往上交换机的级联，最后通过机构的路由器接入到互联网。</li>
+<li>它的出口不止一个，可以通过有线、无线的方式；</li>
+<li>有两种通过无线的方式接入：<ul>
+<li>1.无线局域网（WLAN），如WiFi，按带宽的不同分：100兆的为快速以太网，10G b ps的为万兆以太网（常用于数据机房）等等。</li>
+<li>2.无线广域网（如一个基站能把十几公里内的移动手机都接入，再以高带宽的方式访问互联网）。</li>
+</ul>
+</li>
+</ul>
+<p>物理媒体：即物理链路，把两个节点连在一起的介质；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">分为两类：导引型媒体（看得见摸得着的），非导引型媒体；</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="5-互联网结构和ISP"><a href="#5-互联网结构和ISP" class="headerlink" title="5.互联网结构和ISP"></a>5.互联网结构和ISP</h2><p><strong>互联网划分方式</strong>：</p>
+<ul>
+<li>按节点和链路的类型来分：边缘系统、网络核心、接入网；</li>
+<li>按照关系的远近来划分：互联网由一些ISP的网络通过网络互联设备构成而成。<ul>
+<li>一个运营商的网络称为一个网络，构成一个子系统，称为一个ISP的网络，当然一个ISP里包括很多小的ISP<br>→把互联网称为Internet，网络的网络。    </li>
+<li>任何的一个端系统都是通过ISP接入到互联网。</li>
+</ul>
+</li>
+</ul>
+<p>接入的<strong>ISP</strong>也要<strong>相互互联</strong>，如何互联<strong>分析</strong>：<br>1.不能全连接，即每两个ISPs直接相连，不可拓展，要O(N²)连接。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">不可拓展：即拓展到一定规模，系统的性能下降会很快，需要连接的数量很多，代价大。</span><br></pre></td></tr></table></figure>
+
+<p>2.有些ISP在全球范围内部署自己的路由器和链路，再把设备连在一起，把access net连在一起，这样一个access net到另一个access net就可借助于global ISP来完成数据的传输；<br>将每个接入ISP都连接到全局ISP，客户ISPs与提供者ISPs有经济合约（access net 通过经济合约与global ISP谈好）；<br>会有多个global ISP参与竞争，它们也互相合作，采用对等连接（peer link） or多个都接入到一个Internet exchange point（IXP，互联网交换点）来完成流量的交换。<br>业务细分，全球接入和区域接入。</p>
+<p><strong>ICP互联网内容提供商</strong></p>
+<ul>
+<li><p>eg：百度、谷歌，</p>
+</li>
+<li><p>ICP是提供业务的，而ISP是提供网的。</p>
+</li>
+<li><p>ICP也要通过ISP接入到互联网，但因为ISP收费太高了，也不一定能让ICP的用户有好的体验，于是ICP可以在全球各个地方部署数据中心机房（DC，data center），通过自己部署的专用线缆or租用线缆等把DC连接在一起</p>
+<ul>
+<li>→减少自己的运营支出，向客户提供更好的服务。</li>
+<li>DC常部署在离一些ISP数据中心比较进的地方（这样用户通过ISP接进来，则能很快能访问到ICP的DC，再返回去，用户体验好）</li>
+</ul>
+</li>
+</ul>
+<p><strong>ISP的连接方式：</strong></p>
+<ul>
+<li>pop：高层ISP接入底层ISP，涉及费用结算，eg：Tier 1 ISP接入regional ISP，regional ISP接入local ISP.</li>
+<li>对等接入：2个ISP对等互接，不涉及费用结算。</li>
+<li>IXP：多个对等ISP互联互通之处，通常不涉及费用结算。</li>
+<li>ICP自己部署专用网络，同时也和各级ISP连接。</li>
+</ul>
+<p>（补充：<code>PoP就是在提供商网络中同一个地方的一组路由器（不少于1台），客户ISP就通过这组路由器与提供商ISP相连。</code>我们可以将它比作一个“接口”。原文：“A PoP is simply a group of one or more routers (at the same location) in the provider’s network where customer ISPs can connect into the provider ISP.</p>
+<p>For a customer network to connect to a provider’s PoP, it can lease a high-speed link from a third-party telecommunications provider to directly connect one of its routers to a router at the PoP.”）</p>
+<h2 id="6-协议层次和服务模型"><a href="#6-协议层次和服务模型" class="headerlink" title="6.协议层次和服务模型"></a>6.协议层次和服务模型</h2><p>计算机网络的功能是通过分层的方式来设计和实现。<br>分层：把较复杂的功能分为一个个模块，紧相邻的两个层的模块之间能调用与被调用，不允许or不推荐跨层的调用。<br>层次化解决复杂问题的好处：<br>        把大问题分解为若干个小问题，便于问题的解决；便于采用一些新技术；但效率较低。<br>层次化方式实现复杂网络功能:<br>       将网络复杂的功能分解为若干个功能明确的层次，每一层实现了其中一个或一组功能，功能中有其上层可以使用的功能被称为服务 。<br>对等层的实体通过协议来交换一些控制信息&#x2F;具体实现是通过采用协议实体的相互动作来实现。<br>本层通过承接的接口访问下层所提供的服务，交换pdu，最后通过承接的接口向上层提供更好的服务。<br>“服务”是功能的一部分&#x2F;子集，是外缘提供接口使用己提供的某些功能，是垂直的关系。<br>本层协议实体交互过程中应该遵守的规则的集合称为协议；协议的目的是为了向上层提供更好的服务；协议通过承接的接口访问下层所提供的服务来实现。协议是水平关系；<br>物理层无法借助其他的层次所提供的服务；<br>本层向上层提供的服务包括下面各层提供的服务，且还会提供些新功能。<br>服务用户：eg：有某些应用在tcp实体上跑，那么这些应用是服务用户，tcp是服务提供者。<br>服务访问点（SAP，services access point）：在承接的接口上，可用于下层服务提供者来区分不同的上层用户的，服务提供者在哪个地方向服务用户提供服务的地点。SAP有标志不同上层实体的作用。服务用户通过SAP告诉服务提供者想访问的服务；<br>服务提供者要通过原语来告诉服务用户我向你提供什么服务<br>原语（primitive)：提供服务的形式；</p>
+<ul>
+<li>应用进程使用传输层提供的服务要借助一系列socket api中的函数，这些函数可以抽象为原语，进行函数调用。</li>
+<li>socket api是应用层使用传输层提供服务的一种形式，且是tcp ip协议族中的一种形式</li>
+</ul>
+<p><strong>服务的形式：</strong></p>
+<ul>
+<li><p>面向连接服务：两个通信进程在通信前要握手，此时采用的tcp所提供的服务为面向连接服务；例如tcp想应用进程提供的服务。。</p>
+</li>
+<li><p>无连接服务：两个通信进程在通信前不需建立连接or建立资源，不用握手，例如udp向应用进程提供的服务。</p>
+<ul>
+<li><p>服务：在相邻两层之间它的接口上，服务用户在SAP上使用原语使用下层向上层提供的服务。<br>一个协议实体可以同时为多个用户提供服务，需要SAP来区分。</p>
+</li>
+<li><p>对于原语，因为下层向上层提供的服务有各种各样的类型，且这些类型在使用过程中有一系列操作的序列，故需要原语的形式加以规范和区分。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>数据单元（DU）：</strong><br>IDU, interface data unit，ICI加SDU为IDU;<br>SDU, service data unit,服务数据单元，第n+1层（上层）要求第n层传出去的东西;<br>PDU, protocol data unit，协议数据单元，上层来的sdu加上 本层附加的控制信息在sdu头部 形成本层的PDU（若再往下交，则该PDU对于下层来说是sdu）;</p>
+<ul>
+<li>情况一：上述提及的，一对一。</li>
+<li>情况二：若sdu非常大，下来后会分解成若干个小的，再各个加上该层头部形成pdu，一对多。</li>
+<li>情况三：若sdu非常小，则下来后若干个sdu合在一起，再加上头部信息，形成pdu，多对一。</li>
+</ul>
+<p>ICI, interface control information，接口控制信息，用于便于sdu穿过接口;</p>
+<p>pdu header：部分由ICI转过来，部分由本层附加上去</p>
+<p>pdu body：来源于上层sdu</p>
+<p><strong>在每一层，协议数据单元会有不同的称呼：</strong></p>
+<ol>
+<li>应用层，为应用报文，message；</li>
+<li>传输层，为报文段，段，segment（全称：message segment），如tcp段、udp数据报；</li>
+<li>网络层，为分组，packet；且若网络为无连接方式工作时，称为数据报，datagram；</li>
+<li>链路层，为frame，帧；</li>
+<li>物理层，可以叫位bit等等。</li>
+</ol>
+<p><strong>互联网（以tcp、IP协议为主的一些协议簇构成的网络）的层次</strong>：<br><strong>1.物理层</strong>：提供相邻两点之间的电磁波的承载，把链路层下来的比特交给对等的上层；<br>具体：在传送端，把上层交来的frame中的每个or一些的比特一组一组地变为物理信号，eg：电磁波信号，在介质中传送给对方；在接收端，把信号还原回原来的数据。<br><strong>2.链路层</strong>：会通过网卡，有链路连起来，（在物理层提供的功能基础之上）在相邻的两点之间传输以帧为单位的数据。常采用ppp、WiFi、Ethernet的协议<br>       <code>链路层和物理层一般都被封装在一张网卡上，链路层的协议和物理层的协议是配套的，</code><br><strong>3.网络层：</strong>（在链路层提供两点之间数据传输的基础上）传输以分组为单位的由原主机到目标主机的端到端的数据传输。最重要的两个功能：路由：找路；转发：从一个端口进向另一个端口出。IP协议（做转发），一系列的路由选择协议。<br><strong>4.传输层：</strong>（借助网络层主机到主机的传输服务）完成进程到进程的区分；把网络层提供的可能不可靠的通讯服务变为可靠的，即传输层tcp下面借助IP所提供的网络层的服务，tcp向上层应用进程提供可靠的服务，完成应用报文与应用报文之间的交互。主要协议是TCP,UTP.<br>**5.应用层：**应用进程在传输层提供的可靠的通讯服务基础之上实现各种网络应用。该层协议最多，常见如FTP,SMTP,HTTP,DNS。</p>
+<p>OSI国际标准化组织，<br>OSI开放系统互连关于网络的参考模型：<br>1.应用层<br>2.表示层：允许应用解释传输的数据，如加密、压缩、机器相关的表示转换。<br>3.会话层：数据交换的同步、检查点、恢复<br>4.传输层<br>5.网络层<br>6.链路层<br>7.物理层</p>
+<p>表示层、会话层在tcp、IP协议栈中由应用进程自己去做。<br>可以说，应用之间互相通信的过程为：在原端做一个大封装，在目标端做一个大的解封装，而中间的网络交换设备：到了交换机时则进行两层的解封装再封装，到了网络层的网络交换设备，即路由器时，要完成三层的解、封装</p>
+<h1 id="应用层"><a href="#应用层" class="headerlink" title="应用层"></a>应用层</h1><p>1.应用层协议原理</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><em></em><a class="button is-default" href="/2025/07/10/test/" title="test"><span class="has-text-weight-semibold">Next: test</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="git@github.com:ting-06a/ting-06a.github.io.git" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><a title="twitter" target="_blank" rel="noopener nofollow" href="//twitter.com//"><i class="iconfont icon-twitter"></i></a><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/haojen"><i class="iconfont icon-github"></i></a><!-- Ins--><a title="instagram" target="_blank" rel="noopener nofollow" href="//www.instagram.com//"><i class="iconfont icon-ins"></i></a><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--><a title="facebook" target="_blank" rel="noopener nofollow" href="//www.facebook.com//"><i class="iconfont icon-tian7_facebook"></i></a></section><p><span>Copyright ©</span><span> ting-06a 2025</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/jquery-3.6.1.min.js"></script><script src="/js/jquery-fancybox.min.js"></script><script src="/js/img_zoom.js"></script><script src="/js/post.js"></script></body></html>
